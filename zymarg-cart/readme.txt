@@ -4,7 +4,7 @@ Tags: woocommerce, cart, multi-vendor, elementor, dokan
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 WC requires at least: 9.0
 WC tested up to: 9.9
 License: GPLv2 or later
@@ -57,6 +57,23 @@ to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
 
 == Changelog ==
 
+= 1.1.1 =
+* **Fixed: Order Summary bar now collapses fully.** The breakdown panel
+  previously left the Subtotal row partly visible between the Order
+  Summary bar and the action bar (master checkbox + Grand Total +
+  Checkout button) on some browser/theme combinations. The collapse
+  is now bulletproof — the two bars sit flush against each other when
+  collapsed. Hardened with `overflow: hidden` on the panel and
+  `min-block-size: 0` on the inner so it works across all browsers
+  and themes.
+* **Fixed: Toggle arrow always renders.** The Order Summary bar's
+  toggle arrow previously used the Tabler Icons webfont and was
+  invisible on sites where the icon font failed to load. It is now an
+  inline SVG (no font dependency). Direction convention:
+    - Collapsed → arrow UP
+    - Expanded  → arrow DOWN (rotates 180° via existing CSS)
+  Existing widget controls for arrow color and size continue to work.
+
 = 1.1.0 =
 * **Breaking:** Minimum PHP version is now 8.1 (was 8.0).
 * Save-for-Later item-key hash format changed from PHP serialize() to
@@ -83,17 +100,6 @@ to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
   including when the cart is empty — frontend JS no longer hits `undefined`
   on that branch.
 * Removed duplicate `$user_id` assignment in `handle_zymarg_save_for_later`.
-* **Order Summary collapse fully closes:** fixed a bug where the breakdown
-  panel only collapsed halfway, leaving the Subtotal row partly visible
-  between the bar and the Grand Total action bar. The bar and action bar
-  now sit flush against each other when collapsed. Hardened with
-  `overflow: hidden` on the panel and `min-block-size: 0` on the inner so
-  the collapse is reliable across all browsers and themes.
-* **Order Summary toggle arrow** now renders as an inline SVG instead of a
-  Tabler-icon-font glyph, so the arrow always shows even on sites where
-  the icon font fails to load. The arrow points UP when the panel is
-  collapsed and rotates to point DOWN when expanded. Existing widget
-  controls for arrow color and size continue to work.
 
 = 1.0.8 =
 * Arrow icon now always visible in Order Summary bar (forced independent of Elementor toggle setting).
@@ -113,6 +119,11 @@ to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.1.1 =
+UI fix release. Order Summary bar now collapses fully (no half-visible
+Subtotal row), and the toggle arrow renders reliably regardless of
+icon-font availability.
 
 = 1.1.0 =
 Requires PHP 8.1+. Upgrades the saved-items hash format — existing saved
