@@ -271,18 +271,11 @@ if ( $open_default ) {
 				<?php endforeach; ?>
 			</div>
 
-			<?php /* Divider */ ?>
-			<?php if ( $show_divider ) : ?>
-				<hr class="zymarg-breakdown-divider" aria-hidden="true">
-			<?php endif; ?>
-
-			<?php /* Grand total inside Part A */ ?>
-			<?php if ( $show_panel_grand ) : ?>
-				<div class="zymarg-total-row zymarg-total-row--grand">
-					<span class="zymarg-total-label"><?php echo $grand_label_text; ?></span>
-					<span class="zymarg-total-value" aria-live="polite"><?php echo $grand_html; ?></span>
-				</div>
-			<?php endif; ?>
+			<?php /* Divider + in-breakdown Grand Total removed in v1.1.2 — */
+			/* the Grand Total in the action bar is the only one shown now. */
+			/* Elementor controls $show_divider, $show_panel_grand, and    */
+			/* grand_total_label_text are kept in the widget but no longer */
+			/* render anything here.                                       */ ?>
 
 		</div>
 	</div>

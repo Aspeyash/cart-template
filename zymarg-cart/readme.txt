@@ -4,7 +4,7 @@ Tags: woocommerce, cart, multi-vendor, elementor, dokan
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 WC requires at least: 9.0
 WC tested up to: 9.9
 License: GPLv2 or later
@@ -56,6 +56,30 @@ hooks (woocommerce_thankyou, order_status_processing, order_status_completed)
 to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
 
 == Changelog ==
+
+= 1.1.2 =
+* **Removed: Grand Total row inside the Order Summary breakdown panel.**
+  The Grand Total now appears only in the always-visible action bar at
+  the bottom of the cart total widget — it no longer also appears inside
+  the expandable breakdown panel above. The horizontal divider that sat
+  above the in-breakdown Grand Total has been removed too. The
+  Elementor controls `Show Panel Grand Total`, `Show Divider`, and the
+  Grand Total label text setting are kept in the widget for backwards
+  compatibility but no longer render anything.
+* **Fixed: Order Summary bar now collapses fully (for real this time).**
+  The v1.1.1 collapse fix was being defeated by the widget's own
+  Inner Padding Elementor control, whose generated inline `<style>`
+  selector (`{{WRAPPER}} .zymarg-breakdown-inner`) had higher CSS
+  specificity than the collapsed-state padding rule in the plugin's
+  CSS file. As a result, the inner kept its 14px top/bottom padding
+  even when the panel was supposed to be closed, leaving a partly
+  visible Subtotal row between the bar and the action bar. Fixed by
+  scoping the widget's Inner Padding and Inner Gap controls to
+  `.zymarg-breakdown-panel.breakdown-open .zymarg-breakdown-inner`,
+  so user-customized padding only applies when the panel is expanded.
+  When collapsed, the plain `.zymarg-breakdown-inner` rule from the
+  CSS file wins, padding-top and padding-bottom collapse to 0, and
+  the bar sits flush against the action bar.
 
 = 1.1.1 =
 * **Fixed: Order Summary bar now collapses fully.** The breakdown panel
@@ -119,6 +143,12 @@ to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.1.2 =
+UI cleanup: removes the duplicate Grand Total row from inside the
+Order Summary breakdown panel (it stays in the action bar), and
+finally fixes the Order Summary bar so it collapses fully — no more
+partly-visible Subtotal row between the bar and the action bar.
 
 = 1.1.1 =
 UI fix release. Order Summary bar now collapses fully (no half-visible

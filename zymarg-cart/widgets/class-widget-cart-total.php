@@ -308,7 +308,10 @@ class Zymarg_Widget_Cart_Total extends \Elementor\Widget_Base {
 			'default'        => [ 'top' => '14', 'right' => '20', 'bottom' => '14', 'left' => '20', 'unit' => 'px', 'isLinked' => false ],
 			'tablet_default' => [ 'top' => '12', 'right' => '16', 'bottom' => '12', 'left' => '16', 'unit' => 'px' ],
 			'mobile_default' => [ 'top' => '12', 'right' => '14', 'bottom' => '12', 'left' => '14', 'unit' => 'px' ],
-			'selectors'      => [ '{{WRAPPER}} .zymarg-breakdown-inner' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ],
+			// Scoped to .breakdown-open so user-set padding only applies when the
+			// panel is expanded — otherwise it overrides the collapsed-state CSS
+			// and leaves a partly-visible row when the bar is closed (v1.1.2).
+			'selectors'      => [ '{{WRAPPER}} .zymarg-breakdown-panel.breakdown-open .zymarg-breakdown-inner' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ],
 		] );
 
 		$this->add_responsive_control( 'breakdown_row_gap', [
@@ -319,7 +322,8 @@ class Zymarg_Widget_Cart_Total extends \Elementor\Widget_Base {
 			'default'        => [ 'size' => 5 ],
 			'tablet_default' => [ 'size' => 5 ],
 			'mobile_default' => [ 'size' => 4 ],
-			'selectors'      => [ '{{WRAPPER}} .zymarg-breakdown-inner' => 'gap: {{SIZE}}{{UNIT}};' ],
+			// Same .breakdown-open scoping as the padding control above (v1.1.2).
+			'selectors'      => [ '{{WRAPPER}} .zymarg-breakdown-panel.breakdown-open .zymarg-breakdown-inner' => 'gap: {{SIZE}}{{UNIT}};' ],
 		] );
 
 		$this->add_control( 'row_label_color', [
