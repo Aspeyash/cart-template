@@ -964,12 +964,25 @@
     color: var(--zc-primary);
 }
 
-/* Arrow icon — rotates when panel opens */
+/* Arrow icon — rotates when panel opens.
+   Renders as inline SVG (sized via 1em so the existing font-size widget
+   control still works). Pre-1.1.0 used Tabler Icons which would silently
+   fail on sites where the icon font wasn't loaded. */
 .zymarg-breakdown-arrow {
     font-size: 14px;
+    line-height: 1;
     color: var(--zc-primary);
     transition: transform var(--zc-transition-normal);
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.zymarg-breakdown-arrow svg {
+    width: 1em;
+    height: 1em;
+    display: block;
 }
 
 .breakdown-arrow-open {
@@ -978,10 +991,20 @@
 
 /* ─── 5b. Breakdown panel (Part A) — modern CSS slide ───────────────────── */
 
+/* Animation uses grid-template-rows: 0fr → 1fr.
+   Defensive belt-and-suspenders for browsers/themes where the grid item's
+   intrinsic min-content size leaks through and leaves rows partly visible
+   after collapse:
+     - overflow: hidden on the panel itself guarantees clipping.
+     - min-height: 0 / min-block-size: 0 on the inner overrides the default
+       'min-height: auto' that grid items get.
+   This prevents the v1.0.x bug where the Subtotal row was still partly
+   visible after the bar was clicked to collapse. */
 .zymarg-breakdown-panel {
     display: grid;
     grid-template-rows: 0fr;
     transition: grid-template-rows var(--zc-transition-normal);
+    overflow: hidden;
 }
 
 .zymarg-breakdown-panel.breakdown-open {
@@ -991,6 +1014,7 @@
 .zymarg-breakdown-inner {
     overflow: hidden;
     min-height: 0;
+    min-block-size: 0;
     display: flex;
     flex-direction: column;
     gap: 5px;

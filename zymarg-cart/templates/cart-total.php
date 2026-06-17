@@ -159,7 +159,14 @@ if ( $open_default ) {
 
 			<div class="zymarg-subtotal-bar-left">
 				<?php if ( $show_bar_arrow ) : ?>
-					<i class="ti ti-chevron-down zymarg-breakdown-arrow" aria-hidden="true"></i>
+					<?php /* Inline SVG chevron — baseline points UP (collapsed state).
+					        CSS rotates 180° when .breakdown-arrow-open is added → points DOWN (expanded).
+					        Inline SVG avoids any external icon-font dependency (v1.1.0). */ ?>
+					<span class="zymarg-breakdown-arrow" aria-hidden="true">
+						<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+							<path d="M6 15l6 -6l6 6"/>
+						</svg>
+					</span>
 				<?php endif; ?>
 				<span class="zymarg-subtotal-bar-label">
 					<?php echo $order_summary_text; ?>

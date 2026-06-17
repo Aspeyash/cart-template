@@ -196,7 +196,17 @@
 
 .elementor-widget-zymarg-cart-total .zymarg-breakdown-arrow {
     font-size: 14px;
+    line-height: 1;
     color: var(--zc-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.elementor-widget-zymarg-cart-total .zymarg-breakdown-arrow svg {
+    width: 1em;
+    height: 1em;
+    display: block;
 }
 
 /* Keep breakdown panel visible in editor for layout reference */

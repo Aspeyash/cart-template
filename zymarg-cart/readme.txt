@@ -83,6 +83,17 @@ to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
   including when the cart is empty — frontend JS no longer hits `undefined`
   on that branch.
 * Removed duplicate `$user_id` assignment in `handle_zymarg_save_for_later`.
+* **Order Summary collapse fully closes:** fixed a bug where the breakdown
+  panel only collapsed halfway, leaving the Subtotal row partly visible
+  between the bar and the Grand Total action bar. The bar and action bar
+  now sit flush against each other when collapsed. Hardened with
+  `overflow: hidden` on the panel and `min-block-size: 0` on the inner so
+  the collapse is reliable across all browsers and themes.
+* **Order Summary toggle arrow** now renders as an inline SVG instead of a
+  Tabler-icon-font glyph, so the arrow always shows even on sites where
+  the icon font fails to load. The arrow points UP when the panel is
+  collapsed and rotates to point DOWN when expanded. Existing widget
+  controls for arrow color and size continue to work.
 
 = 1.0.8 =
 * Arrow icon now always visible in Order Summary bar (forced independent of Elementor toggle setting).
