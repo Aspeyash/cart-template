@@ -1,0 +1,420 @@
+/**
+ * ZYMARG Cart — Mobile responsive stylesheet.
+ *
+ * Overrides the desktop 6-column grid layout with a stacked card layout at
+ * the configured breakpoint (default 768 px). All breakpoints in this file
+ * are driven by the same value so changing one number adjusts everything.
+ *
+ * Mobile product-row layout (CSS Grid named areas):
+ *
+ *   col 1 (22px) | col 2 (54px) | col 3 (1fr)
+ *   ─────────────────────────────────────────────
+ *   cb            img            title            ← row 1
+ *   cb            img            subtotal         ← row 2
+ *   .             variation      variation        ← row 3 (spans cols 2-3)
+ *   .             coupon         coupon           ← row 4 (spans cols 2-3)
+ *
+ * Touch targets: all interactive elements maintain a minimum tappable
+ * area of 44 × 44 px in accordance with WCAG 2.5.5.
+ *
+ * @package ZymargCart
+ * @since   1.0.0
+ */
+
+/* =============================================================================
+   Breakpoint — max-width: 768px
+   ============================================================================= */
+
+@media screen and (max-width: 768px) {
+
+    /* ── Widget 1 — Cart Header ─────────────────────────────────────────── */
+
+    .zymarg-cart-header {
+        padding: 10px 14px;
+        border-radius: 10px;
+    }
+
+    .zymarg-header-left {
+        gap: 6px;
+    }
+
+    .zymarg-cart-title {
+        font-size: 14px;
+    }
+
+    .zymarg-item-count {
+        font-size: 11px;
+    }
+
+    .zymarg-cart-icon {
+        font-size: 16px;
+    }
+
+    .zymarg-edit-btn,
+    .zymarg-delete-btn {
+        font-size: 11px;
+        padding: 5px 10px;
+        border-radius: 6px;
+        min-height: 32px; /* accessible touch target */
+    }
+
+    /* ── Widget 2 — Cart Body ───────────────────────────────────────────── */
+
+    .zymarg-cart-body {
+        gap: 8px;
+    }
+
+    .zymarg-vendor-block {
+        border-radius: 10px;
+    }
+
+    /* Vendor row */
+    .zymarg-vendor-row {
+        padding: 8px 12px;
+        gap: 8px;
+    }
+
+    .zymarg-vendor-name {
+        font-size: 12px;
+    }
+
+    .zymarg-vendor-item-count {
+        font-size: 10px;
+    }
+
+    .zymarg-vendor-cb,
+    .zymarg-product-cb,
+    .zymarg-master-cb {
+        width: 18px;  /* slightly larger for touch */
+        height: 18px;
+        min-width: 18px;
+        min-height: 18px;
+    }
+
+    /* Hide desktop column headers — irrelevant in card layout */
+    .zymarg-table-header {
+        display: none;
+    }
+
+    /* ── Product row — switch to 3-column stacked card ──────────────────── */
+
+    .zymarg-product-row {
+        grid-template-columns: 22px 54px 1fr;
+        grid-template-areas:
+            "cb    img    title"
+            "cb    img    subtotal"
+            ".     variation variation"
+            ".     coupon    coupon";
+        gap: 6px;
+        padding: 10px 12px;
+    }
+
+    /* Checkbox: vertically centred in its two-row span */
+    .zymarg-col-cb {
+        align-self: center;
+        padding-top: 2px;
+    }
+
+    /* Image: vertically centred in its two-row span */
+    .zymarg-col-img {
+        align-self: start;
+    }
+
+    .zymarg-product-img-wrap {
+        width: 54px;
+        height: 54px;
+        border-radius: 8px;
+    }
+
+    /* Title column — tighten spacing */
+    .zymarg-col-title {
+        gap: 2px;
+    }
+
+    .zymarg-product-title {
+        font-size: 12px;
+        -webkit-line-clamp: 2;
+    }
+
+    .zymarg-product-sku,
+    .zymarg-variation-labels {
+        font-size: 10px;
+    }
+
+    /* Subtotal column: left-aligned on mobile, shows beneath title */
+    .zymarg-col-subtotal {
+        text-align: left;
+        align-self: center;
+    }
+
+    .zymarg-subtotal-amount {
+        font-size: 12px;
+        color: var(--zc-primary);  /* more prominent on mobile */
+    }
+
+    .zymarg-unit-price {
+        font-size: 10px;
+    }
+
+    /* Variation column: spans cols 2–3 under the image */
+    .zymarg-col-variation {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .zymarg-variation-select {
+        font-size: 11px;
+        padding: 4px 6px;
+        flex: 1;
+        min-width: 80px;
+    }
+
+    .zymarg-qty-stepper {
+        flex-shrink: 0;
+    }
+
+    .zymarg-qty-btn {
+        width: 30px;   /* larger touch target */
+        height: 30px;
+    }
+
+    .zymarg-qty-value {
+        width: 32px;
+        height: 30px;
+        font-size: 13px;
+    }
+
+    /* Coupon column: spans cols 2–3, hidden behind "Have a coupon?" */
+    .zymarg-col-coupon {
+        gap: 4px;
+    }
+
+    .zymarg-coupon-toggle {
+        font-size: 11px;
+        min-height: 28px;       /* comfortable tap target */
+        align-items: center;
+    }
+
+    /* Coupon form: stacks vertically on mobile */
+    .zymarg-coupon-form.zymarg-coupon-open {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .zymarg-coupon-apply {
+        min-height: 34px;
+        align-self: stretch;
+        justify-content: center;
+    }
+
+    /* Save for Later: slightly larger tap target */
+    .zymarg-save-later-btn {
+        min-height: 28px;
+        align-items: center;
+        font-size: 11px;
+    }
+
+    /* Stock warning */
+    .zymarg-stock-warning {
+        font-size: 10px;
+        padding: 2px 5px;
+    }
+
+    /* Vendor subtotal footer */
+    .zymarg-vendor-subtotal-row {
+        padding: 8px 12px;
+    }
+
+    .zymarg-vendor-subtotal-label {
+        font-size: 11px;
+    }
+
+    .zymarg-vendor-subtotal-value {
+        font-size: 12px;
+    }
+
+    /* ── Empty cart state ───────────────────────────────────────────────── */
+
+    .zymarg-cart-empty {
+        padding: 32px 14px;
+        gap: 12px;
+    }
+
+    .zymarg-empty-illustration svg {
+        max-width: 110px;
+    }
+
+    .zymarg-empty-message {
+        font-size: 14px;
+    }
+
+    .zymarg-empty-sub {
+        font-size: 12px;
+    }
+
+    .zymarg-continue-shopping {
+        font-size: 12px;
+        padding: 9px 16px;
+        border-radius: 8px;
+        min-height: 40px;
+    }
+
+    /* ── Save-for-Later section ─────────────────────────────────────────── */
+
+    .zymarg-saved-header {
+        padding: 10px 12px;
+        gap: 6px;
+    }
+
+    .zymarg-saved-header .zymarg-saved-title {
+        font-size: 12px;
+    }
+
+    .zymarg-saved-item-row {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .zymarg-saved-img-wrap {
+        width: 48px;
+        height: 48px;
+    }
+
+    .zymarg-saved-info .zymarg-saved-title {
+        font-size: 12px;
+    }
+
+    .zymarg-saved-price {
+        font-size: 12px;
+    }
+
+    .zymarg-move-to-cart-btn {
+        font-size: 11px;
+        padding: 6px 10px;
+        min-height: 32px;
+    }
+
+    .zymarg-remove-saved-btn {
+        width: 30px;
+        height: 30px;     /* minimum touch target */
+        font-size: 13px;
+    }
+
+    /* ── Widget 3 — Cart Total ──────────────────────────────────────────── */
+
+    /* Subtotal bar */
+    .zymarg-subtotal-bar {
+        padding: 8px 14px;
+    }
+
+    .zymarg-subtotal-bar-left {
+        font-size: 11px;
+        gap: 4px;
+    }
+
+    .zymarg-subtotal-bar-amount {
+        font-size: 12px;
+    }
+
+    .zymarg-breakdown-arrow {
+        font-size: 13px;
+    }
+
+    /* Breakdown panel inner */
+    .zymarg-breakdown-inner {
+        padding: 12px 14px;
+        gap: 4px;
+    }
+
+    .zymarg-total-label {
+        font-size: 11px;
+    }
+
+    .zymarg-total-value {
+        font-size: 11px;
+    }
+
+    .zymarg-total-row--grand .zymarg-total-label {
+        font-size: 13px;
+    }
+
+    .zymarg-total-row--grand .zymarg-total-value {
+        font-size: 14px;
+    }
+
+    /* Action bar */
+    .zymarg-action-bar {
+        padding: 12px 14px;
+        gap: 10px;
+        flex-wrap: nowrap; /* keep single row; compress elements */
+    }
+
+    .zymarg-selected-label {
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .zymarg-action-grand-total {
+        font-size: 16px;
+    }
+
+    .zymarg-action-grand-label {
+        font-size: 10px;
+    }
+
+    /* Checkout button */
+    .zymarg-checkout-btn {
+        font-size: 12px;
+        padding: 9px 14px;
+        border-radius: 8px;
+        gap: 4px;
+        min-height: 40px; /* comfortable touch target */
+    }
+
+    /* Hide the lock icon on very narrow screens to save space */
+    .zymarg-checkout-btn .zymarg-btn-icon {
+        display: none;
+    }
+
+}
+
+/* =============================================================================
+   Breakpoint — max-width: 480px  (very small phones)
+   ============================================================================= */
+
+@media screen and (max-width: 480px) {
+
+    /* Compress action bar further */
+    .zymarg-action-bar {
+        gap: 8px;
+    }
+
+    .zymarg-master-select {
+        gap: 5px;
+    }
+
+    .zymarg-selected-label {
+        display: none; /* hide count on very small screens */
+    }
+
+    .zymarg-action-grand-total {
+        font-size: 15px;
+    }
+
+    .zymarg-checkout-btn {
+        font-size: 12px;
+        padding: 9px 12px;
+    }
+
+    /* Stack the save-for-later actions vertically on tiny screens */
+    .zymarg-saved-actions {
+        align-items: stretch;
+    }
+
+    .zymarg-move-to-cart-btn {
+        justify-content: center;
+    }
+}

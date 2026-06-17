@@ -1,0 +1,330 @@
+<?php
+/**
+ * Frontend template — Widget 3 Cart Total.
+ *
+ * Layout:
+ *   ┌──────────────────────────────────────────────────┐
+ *   │  [^] Order Summary (n items)         RM XX.XX   │  ← Subtotal bar (always visible, clickable)
+ *   ├──────────────────────────────────────────────────┤
+ *   │  Subtotal                            RM XX.XX   │
+ *   │  Discount (COUPONCODE)             − RM XX.XX   │  ← Part A: Breakdown panel
+ *   │  Shipping                            RM XX.XX   │     (hidden by default, slides on click)
+ *   │  Tax (6% SST)                        RM XX.XX   │
+ *   │  ──────────────────────────────────────────────  │
+ *   │  Grand Total                         RM XX.XX   │
+ *   ├──────────────────────────────────────────────────┤
+ *   │  [✓] 4 of 4 selected   RM XX.XX  [Checkout →]  │  ← Part B: Action bar (always visible)
+ *   └──────────────────────────────────────────────────┘
+ *
+ * Variables from Zymarg_Widget_Cart_Total::render():
+ *   @var array  $settings    Elementor control values.
+ *   @var array  $totals      Cart totals from Zymarg_Cart_Dokan::get_totals_for_selected([]).
+ *   @var int    $item_count  Total WC cart item count.
+ *
+ * CSS classes updated in real time by ZymargAjax.applyTotals():
+ *   .zymarg-total-row--subtotal .zymarg-total-value
+ *   .zymarg-total-row--discount                          (shown/hidden based on discount > 0)
+ *   .zymarg-total-row--discount .zymarg-total-value
+ *   .zymarg-total-row--shipping .zymarg-total-value
+ *   .zymarg-total-row--tax      .zymarg-total-value
+ *   .zymarg-total-row--grand    .zymarg-total-value
+ *   .zymarg-action-grand-total
+ *   .zymarg-selected-label
+ *   .zymarg-subtotal-bar-amount
+ *   .zymarg-applied-coupons
+ *
+ * @package ZymargCart
+ * @since   1.0.0
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+// ── Resolve totals (safe defaults when cart is empty / unavailable) ─────────
+$subtotal      = (float)  ( $totals['subtotal']            ?? 0.0 );
+$discount      = (float)  ( $totals['discount']            ?? 0.0 );
+$shipping      = (float)  ( $totals['shipping']            ?? 0.0 );
+$tax           = (float)  ( $totals['tax']                 ?? 0.0 );
+$grand_total   = (float)  ( $totals['grand_total']         ?? 0.0 );
+$subtotal_html = wp_kses_post( $totals['subtotal_html']    ?? wc_price( 0 ) );
+$discount_html = wp_kses_post( $totals['discount_html']    ?? wc_price( 0 ) );
+$shipping_html = wp_kses_post( $totals['shipping_html']    ?? __( 'Calculated at checkout', 'zymarg-cart' ) );
+$tax_html      = wp_kses_post( $totals['tax_html']         ?? wc_price( 0 ) );
+$grand_html    = wp_kses_post( $totals['grand_total_html'] ?? wc_price( 0 ) );
+$coupons       = (array)  ( $totals['coupons']             ?? [] );
+$ship_calc     = (bool)   ( $totals['shipping_calculated'] ?? false );
+$selected_count = (int)   ( $totals['selected_count']      ?? $item_count );
+
+// ── Resolve settings with safe defaults ─────────────────────────────────────
+$show_subtotal_bar   = 'yes' === ( $settings['show_subtotal_bar']     ?? 'yes' );
+$show_bar_arrow      = true; // Always show arrow icon regardless of Elementor setting (v1.0.8).
+$show_subtotal_line  = 'yes' === ( $settings['show_subtotal_line']    ?? 'yes' );
+$show_discount_line  = 'yes' === ( $settings['show_discount_line']    ?? 'yes' );
+$show_shipping_line  = 'yes' === ( $settings['show_shipping_line']    ?? 'yes' );
+$show_vendor_ship    = 'yes' === ( $settings['show_shipping_per_vendor'] ?? 'yes' );
+$show_tax_line       = 'yes' === ( $settings['show_tax_line']         ?? 'yes' );
+$show_panel_grand    = 'yes' === ( $settings['show_panel_grand']      ?? 'yes' );
+$show_divider        = 'yes' === ( $settings['show_divider']          ?? 'yes' );
+$show_master_cb      = 'yes' === ( $settings['show_master_cb']        ?? 'yes' );
+$show_select_label   = 'yes' === ( $settings['show_select_label']     ?? 'yes' );
+$show_selected_count = 'yes' === ( $settings['show_selected_count']   ?? 'yes' );
+$show_action_grand   = 'yes' === ( $settings['show_action_grand']     ?? 'yes' );
+$show_grand_label    = 'yes' === ( $settings['show_action_grand_label'] ?? 'yes' );
+$show_checkout_btn   = 'yes' === ( $settings['show_checkout_btn']     ?? 'yes' );
+$show_checkout_icon  = 'yes' === ( $settings['show_checkout_icon']    ?? 'yes' );
+
+$animate            = 'yes' === ( $settings['animate_breakdown']     ?? 'yes' );
+$speed              = (int)  ( $settings['animation_speed']['size']  ?? 300 );
+$open_default       = false; // Always collapsed on load; auto-expands when items are selected (v1.0.7).
+$btn_loading_on     = 'yes' === ( $settings['checkout_btn_loading']  ?? 'yes' );
+
+// ── Text labels ───────────────────────────────────────────────────────────
+$order_summary_text = ! empty( $settings['order_summary_text'] )
+	? esc_html( $settings['order_summary_text'] )
+	: esc_html__( 'Order Summary', 'zymarg-cart' );
+
+$tax_label_text = ! empty( $settings['tax_label_text'] )
+	? esc_html( $settings['tax_label_text'] )
+	: esc_html__( 'Tax (6% SST)', 'zymarg-cart' );
+
+$grand_label_text = ! empty( $settings['grand_total_label_text'] )
+	? esc_html( $settings['grand_total_label_text'] )
+	: esc_html__( 'Grand Total', 'zymarg-cart' );
+
+$checkout_btn_text = ! empty( $settings['checkout_btn_text'] )
+	? esc_html( $settings['checkout_btn_text'] )
+	: esc_html__( 'Proceed to Checkout', 'zymarg-cart' );
+
+// ── Selected label: "n of n selected" ───────────────────────────────────
+$selected_label = sprintf(
+	/* translators: 1: Selected count, 2: Total count. */
+	__( '%1$d of %2$d selected', 'zymarg-cart' ),
+	$selected_count,
+	$item_count
+);
+
+// ── Per-vendor shipping (if toggle enabled) ───────────────────────────────
+$vendor_shipping_rows = [];
+if ( $show_vendor_ship && $ship_calc ) {
+	$vendor_ids = Zymarg_Cart_Dokan::get_cart_vendor_ids();
+	foreach ( $vendor_ids as $vid ) {
+		$ship = Zymarg_Cart_Dokan::get_vendor_shipping( $vid );
+		if ( 'calculated' === $ship['status'] && $ship['cost'] > 0.0 ) {
+			$info = Zymarg_Cart_Dokan::get_vendor_info( $vid );
+			$vendor_shipping_rows[] = [
+				'label' => wp_strip_all_tags( $info['store_name'] ?? '' ),
+				'html'  => $ship['html'],
+			];
+		}
+	}
+}
+
+// ── CSS class for breakdown panel open/closed ─────────────────────────────
+$panel_class = 'zymarg-breakdown-panel';
+if ( $open_default ) {
+	$panel_class .= ' breakdown-open';
+}
+
+?>
+<div class="zymarg-cart-total"
+	data-widget="cart-total"
+	data-animate="<?php echo $animate ? '1' : '0'; ?>"
+	data-speed="<?php echo esc_attr( (string) $speed ); ?>"
+	data-item-count="<?php echo esc_attr( (string) $item_count ); ?>">
+
+	<?php /* ── Subtotal bar (always visible, clickable) ────────────────── */ ?>
+	<?php if ( $show_subtotal_bar ) : ?>
+		<div class="zymarg-subtotal-bar"
+			role="button"
+			tabindex="0"
+			aria-expanded="<?php echo $open_default ? 'true' : 'false'; ?>"
+			aria-controls="zymarg-breakdown-panel"
+			aria-label="<?php esc_attr_e( 'Toggle order summary', 'zymarg-cart' ); ?>">
+
+			<div class="zymarg-subtotal-bar-left">
+				<?php if ( $show_bar_arrow ) : ?>
+					<i class="ti ti-chevron-down zymarg-breakdown-arrow" aria-hidden="true"></i>
+				<?php endif; ?>
+				<span class="zymarg-subtotal-bar-label">
+					<?php echo $order_summary_text; ?>
+					<?php if ( $show_selected_count && $item_count > 0 ) : ?>
+						<span class="zymarg-subtotal-bar-count" aria-live="polite">
+							(<?php echo esc_html( $selected_label ); ?>)
+						</span>
+					<?php endif; ?>
+				</span>
+			</div>
+
+			<div class="zymarg-subtotal-bar-right">
+				<span class="zymarg-subtotal-bar-amount" aria-live="polite">
+					<?php echo $subtotal_html; ?>
+				</span>
+			</div>
+
+		</div>
+	<?php endif; ?>
+
+	<?php /* ── Part A: Breakdown panel (hidden by default) ───────────────── */ ?>
+	<div id="zymarg-breakdown-panel"
+		class="<?php echo esc_attr( $panel_class ); ?>"
+		data-open="<?php echo $open_default ? '1' : '0'; ?>"
+		aria-hidden="<?php echo $open_default ? 'false' : 'true'; ?>">
+
+		<div class="zymarg-breakdown-inner">
+
+			<?php /* Subtotal row */ ?>
+			<?php if ( $show_subtotal_line ) : ?>
+				<div class="zymarg-total-row zymarg-total-row--subtotal">
+					<span class="zymarg-total-label"><?php esc_html_e( 'Subtotal', 'zymarg-cart' ); ?></span>
+					<span class="zymarg-total-value" aria-live="polite"><?php echo $subtotal_html; ?></span>
+				</div>
+			<?php endif; ?>
+
+			<?php /* Discount row — hidden when no discount, shown by JS when coupon applied */ ?>
+			<?php if ( $show_discount_line ) : ?>
+				<div class="zymarg-total-row zymarg-total-row--discount"
+					<?php echo $discount <= 0 ? 'style="display:none;"' : ''; ?>>
+					<span class="zymarg-total-label">
+						<?php esc_html_e( 'Discount', 'zymarg-cart' ); ?>
+						<?php foreach ( $coupons as $c ) : ?>
+							<span class="zymarg-coupon-code-badge">(<?php echo esc_html( $c['code'] ); ?>)</span>
+						<?php endforeach; ?>
+					</span>
+					<span class="zymarg-total-value" aria-live="polite">
+						<?php if ( $discount > 0 ) : ?>
+							<span class="zymarg-discount-prefix" aria-hidden="true">&minus;&nbsp;</span><?php echo $discount_html; ?>
+						<?php endif; ?>
+					</span>
+				</div>
+			<?php endif; ?>
+
+			<?php /* Shipping row — per vendor or combined */ ?>
+			<?php if ( $show_shipping_line ) : ?>
+				<?php if ( $show_vendor_ship && ! empty( $vendor_shipping_rows ) ) : ?>
+					<?php foreach ( $vendor_shipping_rows as $vsr ) : ?>
+						<div class="zymarg-total-row zymarg-total-row--shipping zymarg-total-row--vendor-ship">
+							<span class="zymarg-total-label">
+								<?php echo esc_html( sprintf(
+									/* translators: %s: Store name. */
+									__( 'Shipping (%s)', 'zymarg-cart' ),
+									$vsr['label']
+								) ); ?>
+							</span>
+							<span class="zymarg-total-value"><?php echo wp_kses_post( $vsr['html'] ); ?></span>
+						</div>
+					<?php endforeach; ?>
+				<?php else : ?>
+					<div class="zymarg-total-row zymarg-total-row--shipping">
+						<span class="zymarg-total-label"><?php esc_html_e( 'Shipping', 'zymarg-cart' ); ?></span>
+						<span class="zymarg-total-value" aria-live="polite"><?php echo $shipping_html; ?></span>
+					</div>
+				<?php endif; ?>
+			<?php endif; ?>
+
+			<?php /* Tax row */ ?>
+			<?php if ( $show_tax_line ) : ?>
+				<div class="zymarg-total-row zymarg-total-row--tax">
+					<span class="zymarg-total-label"><?php echo $tax_label_text; ?></span>
+					<span class="zymarg-total-value" aria-live="polite"><?php echo $tax_html; ?></span>
+				</div>
+			<?php endif; ?>
+
+			<?php /* Applied coupons list (updated by ZymargAjax.applyTotals) */ ?>
+			<div class="zymarg-applied-coupons" aria-live="polite">
+				<?php foreach ( $coupons as $c ) : ?>
+					<div class="zymarg-applied-coupon" data-coupon="<?php echo esc_attr( $c['code'] ); ?>">
+						<span class="zymarg-coupon-code"><?php echo esc_html( $c['code'] ); ?></span>
+						<span class="zymarg-coupon-disc">&minus;&nbsp;<?php echo wp_kses_post( $c['discount_html'] ); ?></span>
+						<button type="button" class="zymarg-remove-coupon"
+							data-coupon="<?php echo esc_attr( $c['code'] ); ?>"
+							aria-label="<?php echo esc_attr( sprintf(
+								/* translators: %s: Coupon code. */
+								__( 'Remove coupon %s', 'zymarg-cart' ),
+								$c['code']
+							) ); ?>">
+							<i class="ti ti-x" aria-hidden="true"></i>
+						</button>
+					</div>
+				<?php endforeach; ?>
+			</div>
+
+			<?php /* Divider */ ?>
+			<?php if ( $show_divider ) : ?>
+				<hr class="zymarg-breakdown-divider" aria-hidden="true">
+			<?php endif; ?>
+
+			<?php /* Grand total inside Part A */ ?>
+			<?php if ( $show_panel_grand ) : ?>
+				<div class="zymarg-total-row zymarg-total-row--grand">
+					<span class="zymarg-total-label"><?php echo $grand_label_text; ?></span>
+					<span class="zymarg-total-value" aria-live="polite"><?php echo $grand_html; ?></span>
+				</div>
+			<?php endif; ?>
+
+		</div>
+	</div>
+
+	<?php /* ── Part B: Action bar (always visible) ───────────────────────── */ ?>
+	<div class="zymarg-action-bar">
+
+		<?php /* Master checkbox + selected count */ ?>
+		<div class="zymarg-master-select">
+
+			<?php if ( $show_master_cb ) : ?>
+				<input
+					type="checkbox"
+					class="zymarg-master-cb"
+					id="zymarg-master-cb"
+					checked
+					aria-label="<?php esc_attr_e( 'Select all items', 'zymarg-cart' ); ?>"
+				>
+				<label for="zymarg-master-cb" class="screen-reader-text">
+					<?php esc_html_e( 'Select all items', 'zymarg-cart' ); ?>
+				</label>
+			<?php endif; ?>
+
+			<?php if ( $show_select_label ) : ?>
+				<span class="zymarg-selected-label" aria-live="polite">
+					<?php echo esc_html( $selected_label ); ?>
+				</span>
+			<?php endif; ?>
+
+		</div>
+
+		<?php /* Grand total amount */ ?>
+		<?php if ( $show_action_grand ) : ?>
+			<div class="zymarg-action-grand-wrap">
+
+				<?php if ( $show_grand_label ) : ?>
+					<span class="zymarg-action-grand-label"><?php echo $grand_label_text; ?></span>
+				<?php endif; ?>
+
+				<span class="zymarg-action-grand-total" aria-live="polite">
+					<?php echo $grand_html; ?>
+				</span>
+
+			</div>
+		<?php endif; ?>
+
+		<?php /* Checkout button */ ?>
+		<?php if ( $show_checkout_btn ) : ?>
+			<button
+				type="button"
+				class="zymarg-checkout-btn"
+				data-loading="<?php echo $btn_loading_on ? '1' : '0'; ?>"
+				aria-label="<?php echo esc_attr( $checkout_btn_text . ' — ' . strip_tags( $grand_html ) ); ?>"
+			>
+				<?php if ( $show_checkout_icon ) : ?>
+					<i class="ti ti-lock zymarg-btn-icon" aria-hidden="true"></i>
+				<?php endif; ?>
+				<span class="zymarg-btn-label"><?php echo $checkout_btn_text; ?></span>
+				<i class="ti ti-arrow-right zymarg-btn-arrow" aria-hidden="true"></i>
+				<span class="zymarg-btn-spinner" aria-hidden="true"></span>
+			</button>
+		<?php endif; ?>
+
+	</div>
+
+</div>
+<?php

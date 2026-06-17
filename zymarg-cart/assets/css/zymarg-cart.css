@@ -1,0 +1,1297 @@
+/**
+ * ZYMARG Cart — Main frontend stylesheet.
+ *
+ * Structure:
+ *   1.  CSS custom properties (brand tokens)
+ *   2.  Shared base utilities
+ *   3.  Widget 1 — Cart Header
+ *   4.  Widget 2 — Cart Body
+ *       4a. Vendor block + vendor row
+ *       4b. Table headers
+ *       4c. Product row (6-column grid)
+ *       4d. Column styles (cb, img, title, variation, subtotal, coupon)
+ *       4e. Vendor subtotal footer
+ *       4f. Empty cart state
+ *       4g. Save-for-Later section
+ *   5.  Widget 3 — Cart Total
+ *       5a. Subtotal bar
+ *       5b. Breakdown panel (Part A) — slide animation
+ *       5c. Applied coupons list
+ *       5d. Action bar (Part B)
+ *       5e. Checkout button + spinner
+ *   6.  Edit mode overrides (.zymarg-edit-mode on <body>)
+ *   7.  AJAX loading states
+ *   8.  Accessibility helpers
+ *
+ * @package ZymargCart
+ * @since   1.0.0
+ */
+
+/* =============================================================================
+   1. CSS Custom Properties — ZYMARG Brand Tokens
+   ============================================================================= */
+
+:root {
+    /* Palette */
+    --zc-primary:           #9500a5;
+    --zc-primary-fixed:     #ffd6fb;
+    --zc-primary-container: #bd00d1;
+    --zc-inverse-primary:   #fea9ff;
+    --zc-on-primary-fixed:  #36003d;
+    --zc-secondary:         #505f76;
+    --zc-secondary-container: #d0e1fb;
+
+    /* Text */
+    --zc-text-body:   #131b2e;
+    --zc-text-muted:  #534152;
+
+    /* Outline */
+    --zc-outline:         #857183;
+    --zc-outline-variant: #d8bfd3;
+
+    /* Surfaces */
+    --zc-surface:           #faf8ff;
+    --zc-surface-container: #eaedff;
+    --zc-surface-lowest:    #ffffff;
+    --zc-inverse-surface:   #283044;
+
+    /* Semantic */
+    --zc-success-text: #3b6d11;
+    --zc-success-bg:   #eaf3de;
+    --zc-error-text:   #a32d2d;
+    --zc-error-bg:     #fcebeb;
+    --zc-warning-text: #854f0b;
+    --zc-warning-bg:   #faeeda;
+
+    /* Motion */
+    --zc-transition-fast:   0.15s ease;
+    --zc-transition-normal: 0.3s ease;
+}
+
+/* =============================================================================
+   2. Shared Base Utilities
+   ============================================================================= */
+
+.screen-reader-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* =============================================================================
+   3. Widget 1 — Cart Header
+   ============================================================================= */
+
+.zymarg-cart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background-color: var(--zc-surface);
+    border: 0.5px solid var(--zc-outline-variant);
+    border-radius: 12px;
+    padding: 14px 20px;
+}
+
+.zymarg-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.zymarg-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.zymarg-cart-icon {
+    font-size: 18px;
+    color: var(--zc-primary);
+    flex-shrink: 0;
+}
+
+.zymarg-cart-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--zc-text-body);
+    white-space: nowrap;
+}
+
+.zymarg-item-count {
+    font-size: 13px;
+    color: var(--zc-outline);
+    white-space: nowrap;
+}
+
+/* Edit / Delete buttons */
+.zymarg-edit-btn,
+.zymarg-delete-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 400;
+    border-radius: 8px;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: background-color var(--zc-transition-fast),
+                color var(--zc-transition-fast);
+    border: 0.5px solid;
+    background: transparent;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.zymarg-edit-btn {
+    color: var(--zc-primary);
+    border-color: var(--zc-primary);
+}
+
+.zymarg-edit-btn:hover {
+    background-color: var(--zc-primary-fixed);
+}
+
+.zymarg-delete-btn {
+    display: none; /* Revealed only in .zymarg-edit-mode */
+    color: var(--zc-error-text);
+    border-color: var(--zc-error-text);
+    background-color: var(--zc-error-bg);
+}
+
+.zymarg-delete-btn:hover:not(:disabled) {
+    background-color: var(--zc-error-text);
+    color: #ffffff;
+}
+
+.zymarg-delete-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* =============================================================================
+   4. Widget 2 — Cart Body
+   ============================================================================= */
+
+.zymarg-cart-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ─── 4a. Vendor block + row ─────────────────────────────────────────────── */
+
+.zymarg-vendor-block {
+    background-color: var(--zc-surface-lowest);
+    border: 0.5px solid var(--zc-outline-variant);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.zymarg-vendor-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background-color: var(--zc-surface-container);
+    border-bottom: 0.5px solid var(--zc-outline-variant);
+}
+
+.zymarg-vendor-identity {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.zymarg-vendor-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.zymarg-vendor-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--zc-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.zymarg-vendor-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    text-decoration: none;
+    transition: color var(--zc-transition-fast);
+}
+
+.zymarg-vendor-link:hover {
+    color: var(--zc-primary-container);
+}
+
+.zymarg-vendor-arrow {
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.zymarg-vendor-item-count {
+    font-size: 11px;
+    color: var(--zc-outline);
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+/* Vendor checkboxes */
+.zymarg-vendor-cb-wrap {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.zymarg-vendor-cb,
+.zymarg-product-cb,
+.zymarg-master-cb {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--zc-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* ─── 4b. Table headers ──────────────────────────────────────────────────── */
+
+.zymarg-table-header {
+    display: grid;
+    grid-template-columns: 36px 64px 1fr 180px 100px 160px;
+    gap: 10px;
+    padding: 8px 10px;
+    background-color: var(--zc-surface);
+    border-bottom: 0.5px solid var(--zc-outline-variant);
+}
+
+.zymarg-th {
+    font-size: 11px;
+    color: var(--zc-outline);
+    font-weight: 500;
+    text-transform: none;
+}
+
+/* ─── 4c. Product row — 6-column grid ───────────────────────────────────── */
+
+.zymarg-product-rows {
+    display: flex;
+    flex-direction: column;
+}
+
+.zymarg-product-row {
+    display: grid;
+    grid-template-columns: 36px 64px 1fr 180px 100px 160px;
+    grid-template-areas: "cb img title variation subtotal coupon";
+    align-items: start;
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 0.5px solid var(--zc-surface-container);
+    transition: background-color var(--zc-transition-fast);
+    position: relative;
+}
+
+.zymarg-product-row:last-child {
+    border-bottom: none;
+}
+
+.zymarg-product-row:hover {
+    background-color: var(--zc-surface);
+}
+
+.zymarg-col-cb        { grid-area: cb;        align-self: center; }
+.zymarg-col-img       { grid-area: img; }
+.zymarg-col-title     { grid-area: title; }
+.zymarg-col-variation { grid-area: variation; }
+.zymarg-col-subtotal  { grid-area: subtotal;  text-align: right; }
+.zymarg-col-coupon    { grid-area: coupon; }
+
+/* ─── Product image ─────────────────────────────────────────────────────── */
+
+.zymarg-product-img-link {
+    display: block;
+    text-decoration: none;
+}
+
+.zymarg-product-img-wrap {
+    width: 54px;
+    height: 54px;
+    border-radius: 8px;
+    background-color: var(--zc-surface-container);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.zymarg-product-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ─── Product title column ──────────────────────────────────────────────── */
+
+.zymarg-col-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.zymarg-product-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--zc-text-body);
+    text-decoration: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+    transition: color var(--zc-transition-fast);
+}
+
+.zymarg-product-title:hover {
+    color: var(--zc-primary);
+}
+
+.zymarg-product-sku {
+    font-size: 11px;
+    color: var(--zc-outline);
+}
+
+.zymarg-variation-labels {
+    font-size: 11px;
+    color: var(--zc-text-muted);
+}
+
+/* Stock warnings */
+.zymarg-stock-warning {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.zymarg-stock-warning.zymarg-low-stock {
+    color: var(--zc-warning-text);
+    background-color: var(--zc-warning-bg);
+}
+
+.zymarg-stock-warning.zymarg-out-of-stock {
+    color: var(--zc-error-text);
+    background-color: var(--zc-error-bg);
+}
+
+/* Save for Later button */
+.zymarg-save-later-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    color: var(--zc-text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 4px;
+    width: fit-content;
+    transition: color var(--zc-transition-fast);
+}
+
+.zymarg-save-later-btn:hover {
+    color: var(--zc-primary);
+}
+
+/* ─── Variation dropdown + Qty stepper ──────────────────────────────────── */
+
+.zymarg-col-variation {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.zymarg-variation-selects {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.zymarg-variation-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.zymarg-variation-label {
+    font-size: 10px;
+    color: var(--zc-outline);
+}
+
+.zymarg-variation-select {
+    font-size: 12px;
+    color: var(--zc-text-muted);
+    border: 0.5px solid var(--zc-outline-variant);
+    border-radius: 6px;
+    padding: 5px 7px;
+    background-color: var(--zc-surface);
+    width: 100%;
+    cursor: pointer;
+    appearance: auto;
+    transition: border-color var(--zc-transition-fast);
+}
+
+.zymarg-variation-select:focus {
+    outline: none;
+    border-color: var(--zc-primary);
+}
+
+.zymarg-variation-static {
+    font-size: 12px;
+    color: var(--zc-text-muted);
+}
+
+/* Qty stepper */
+.zymarg-qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 0.5px solid var(--zc-outline-variant);
+    border-radius: 6px;
+    overflow: hidden;
+    width: fit-content;
+}
+
+.zymarg-qty-btn {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--zc-surface-container);
+    color: var(--zc-primary);
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    transition: background-color var(--zc-transition-fast);
+    flex-shrink: 0;
+}
+
+.zymarg-qty-btn:hover:not(:disabled) {
+    background-color: var(--zc-primary-fixed);
+}
+
+.zymarg-qty-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.zymarg-qty-value {
+    width: 30px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--zc-text-body);
+    background-color: var(--zc-surface-lowest);
+    text-align: center;
+    flex-shrink: 0;
+    border-left: 0.5px solid var(--zc-outline-variant);
+    border-right: 0.5px solid var(--zc-outline-variant);
+}
+
+/* ─── Subtotal column ───────────────────────────────────────────────────── */
+
+.zymarg-subtotal-amount {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--zc-text-body);
+}
+
+.zymarg-unit-price {
+    font-size: 11px;
+    color: var(--zc-outline);
+    margin-top: 2px;
+    white-space: nowrap;
+}
+
+/* ─── Coupon column ─────────────────────────────────────────────────────── */
+
+.zymarg-col-coupon {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.zymarg-applied-coupon-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--zc-success-text);
+    background-color: var(--zc-success-bg);
+    border-radius: 4px;
+    padding: 3px 7px;
+    width: fit-content;
+}
+
+.zymarg-coupon-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    color: var(--zc-primary);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    width: fit-content;
+    transition: color var(--zc-transition-fast);
+}
+
+.zymarg-coupon-toggle:hover {
+    color: var(--zc-primary-container);
+}
+
+/* Coupon form — hidden behind toggle */
+.zymarg-coupon-form {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.zymarg-coupon-form.zymarg-coupon-open {
+    display: flex;
+}
+
+.zymarg-coupon-input {
+    font-size: 11px;
+    border: 0.5px solid var(--zc-outline-variant);
+    border-radius: 6px;
+    padding: 5px 8px;
+    background-color: var(--zc-surface);
+    width: 100%;
+    transition: border-color var(--zc-transition-fast);
+}
+
+.zymarg-coupon-input:focus {
+    outline: none;
+    border-color: var(--zc-primary);
+}
+
+.zymarg-coupon-apply {
+    font-size: 11px;
+    color: var(--zc-primary);
+    border: 0.5px solid var(--zc-primary);
+    border-radius: 6px;
+    padding: 5px 10px;
+    background: transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color var(--zc-transition-fast),
+                color var(--zc-transition-fast);
+    align-self: flex-start;
+}
+
+.zymarg-coupon-apply:hover {
+    background-color: var(--zc-primary);
+    color: var(--zc-primary-fixed);
+}
+
+/* Coupon feedback messages */
+.zymarg-coupon-feedback {
+    display: none;
+    font-size: 11px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    line-height: 1.4;
+}
+
+.zymarg-coupon-feedback.zymarg-coupon-success {
+    display: block;
+    color: var(--zc-success-text);
+    background-color: var(--zc-success-bg);
+}
+
+.zymarg-coupon-feedback.zymarg-coupon-error {
+    display: block;
+    color: var(--zc-error-text);
+    background-color: var(--zc-error-bg);
+}
+
+/* ─── 4e. Vendor subtotal footer ────────────────────────────────────────── */
+
+.zymarg-vendor-subtotal-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background-color: var(--zc-surface);
+    border-top: 0.5px solid var(--zc-outline-variant);
+}
+
+.zymarg-vendor-subtotal-label {
+    font-size: 12px;
+    color: var(--zc-text-muted);
+}
+
+.zymarg-vendor-subtotal-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--zc-text-body);
+}
+
+/* ─── 4f. Empty cart state ──────────────────────────────────────────────── */
+
+.zymarg-cart-empty {
+    text-align: center;
+    padding: 48px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.zymarg-empty-illustration svg {
+    max-width: 140px;
+    height: auto;
+}
+
+.zymarg-empty-message {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--zc-text-body);
+    margin: 0;
+}
+
+.zymarg-empty-sub {
+    font-size: 13px;
+    color: var(--zc-text-muted);
+    margin: 0;
+}
+
+.zymarg-continue-shopping {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--zc-primary-fixed);
+    background-color: var(--zc-primary);
+    border-radius: 10px;
+    padding: 10px 22px;
+    text-decoration: none;
+    transition: background-color var(--zc-transition-fast);
+}
+
+.zymarg-continue-shopping:hover {
+    background-color: var(--zc-primary-container);
+    color: var(--zc-primary-fixed);
+}
+
+/* ─── 4g. Save-for-Later section ────────────────────────────────────────── */
+
+.zymarg-saved-section {
+    background-color: var(--zc-surface-lowest);
+    border: 0.5px solid var(--zc-outline-variant);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.zymarg-saved-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 0.5px solid var(--zc-outline-variant);
+    background-color: var(--zc-surface);
+}
+
+.zymarg-saved-header .zymarg-saved-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--zc-text-body);
+}
+
+.zymarg-saved-count-badge {
+    background-color: var(--zc-primary);
+    color: var(--zc-primary-fixed);
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 10px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.zymarg-saved-item-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 0.5px solid var(--zc-surface-container);
+    transition: background-color var(--zc-transition-fast);
+}
+
+.zymarg-saved-item-row:last-child {
+    border-bottom: none;
+}
+
+.zymarg-saved-item-row:hover {
+    background-color: var(--zc-surface);
+}
+
+.zymarg-saved-img-link {
+    display: block;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.zymarg-saved-img-wrap {
+    width: 54px;
+    height: 54px;
+    border-radius: 8px;
+    background-color: var(--zc-surface-container);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.zymarg-saved-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.zymarg-saved-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.zymarg-saved-info .zymarg-saved-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--zc-text-body);
+    text-decoration: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+    transition: color var(--zc-transition-fast);
+}
+
+.zymarg-saved-info .zymarg-saved-title:hover {
+    color: var(--zc-primary);
+}
+
+.zymarg-saved-var-labels {
+    font-size: 11px;
+    color: var(--zc-text-muted);
+}
+
+.zymarg-saved-price-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.zymarg-saved-price {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--zc-primary);
+}
+
+.zymarg-price-changed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    color: var(--zc-warning-text);
+    background-color: var(--zc-warning-bg);
+    border-radius: 4px;
+    padding: 1px 5px;
+}
+
+.zymarg-saved-qty {
+    font-size: 11px;
+    color: var(--zc-outline);
+}
+
+.zymarg-saved-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.zymarg-move-to-cart-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--zc-surface-lowest);
+    background-color: var(--zc-primary);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color var(--zc-transition-fast);
+}
+
+.zymarg-move-to-cart-btn:hover:not(:disabled) {
+    background-color: var(--zc-primary-container);
+}
+
+.zymarg-move-to-cart-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.zymarg-remove-saved-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+    color: var(--zc-outline);
+    background: transparent;
+    border: 0.5px solid var(--zc-outline-variant);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: color var(--zc-transition-fast),
+                border-color var(--zc-transition-fast),
+                background-color var(--zc-transition-fast);
+    flex-shrink: 0;
+}
+
+.zymarg-remove-saved-btn:hover {
+    color: var(--zc-error-text);
+    border-color: var(--zc-error-text);
+    background-color: var(--zc-error-bg);
+}
+
+/* =============================================================================
+   5. Widget 3 — Cart Total
+   ============================================================================= */
+
+.zymarg-cart-total {
+    background-color: var(--zc-surface-lowest);
+    border: 0.5px solid var(--zc-outline-variant);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* ─── 5a. Subtotal bar ──────────────────────────────────────────────────── */
+
+.zymarg-subtotal-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 20px;
+    background-color: var(--zc-surface-container);
+    border-bottom: 0.5px solid var(--zc-outline-variant);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color var(--zc-transition-fast);
+}
+
+.zymarg-subtotal-bar:hover {
+    background-color: #dde0f5;
+}
+
+.zymarg-subtotal-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--zc-text-muted);
+    min-width: 0;
+}
+
+.zymarg-subtotal-bar-count {
+    color: var(--zc-outline);
+}
+
+.zymarg-subtotal-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.zymarg-subtotal-bar-amount {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--zc-primary);
+}
+
+/* Arrow icon — rotates when panel opens */
+.zymarg-breakdown-arrow {
+    font-size: 14px;
+    color: var(--zc-primary);
+    transition: transform var(--zc-transition-normal);
+    flex-shrink: 0;
+}
+
+.breakdown-arrow-open {
+    transform: rotate(180deg);
+}
+
+/* ─── 5b. Breakdown panel (Part A) — modern CSS slide ───────────────────── */
+
+.zymarg-breakdown-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--zc-transition-normal);
+}
+
+.zymarg-breakdown-panel.breakdown-open {
+    grid-template-rows: 1fr;
+}
+
+.zymarg-breakdown-inner {
+    overflow: hidden;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 0 20px; /* No top/bottom padding when collapsed — prevents ghost whitespace (v1.0.8) */
+    transition: padding var(--zc-transition-normal);
+}
+
+.zymarg-breakdown-panel.breakdown-open .zymarg-breakdown-inner {
+    padding: 14px 20px; /* Restore full padding when open (v1.0.8) */
+}
+
+/* Breakdown rows */
+.zymarg-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.zymarg-total-label {
+    font-size: 12px;
+    color: var(--zc-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.zymarg-total-value {
+    font-size: 12px;
+    color: var(--zc-text-body);
+    white-space: nowrap;
+}
+
+.zymarg-total-row--discount .zymarg-total-value {
+    color: var(--zc-success-text);
+}
+
+.zymarg-total-row--grand .zymarg-total-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--zc-text-body);
+}
+
+.zymarg-total-row--grand .zymarg-total-value {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--zc-primary);
+}
+
+.zymarg-breakdown-divider {
+    border: none;
+    border-top: 0.5px solid var(--zc-outline-variant);
+    margin: 4px 0;
+}
+
+.zymarg-coupon-code-badge {
+    font-size: 11px;
+    color: var(--zc-success-text);
+    font-weight: 500;
+}
+
+/* ─── 5c. Applied coupons list ──────────────────────────────────────────── */
+
+.zymarg-applied-coupons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.zymarg-applied-coupon {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--zc-success-text);
+    background-color: var(--zc-success-bg);
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+.zymarg-coupon-code {
+    font-weight: 500;
+}
+
+.zymarg-coupon-disc {
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.zymarg-remove-coupon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--zc-success-text);
+    font-size: 12px;
+    padding: 0;
+    border-radius: 2px;
+    transition: color var(--zc-transition-fast);
+    flex-shrink: 0;
+}
+
+.zymarg-remove-coupon:hover {
+    color: var(--zc-error-text);
+}
+
+/* ─── 5d. Action bar (Part B) ───────────────────────────────────────────── */
+
+.zymarg-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    background-color: var(--zc-surface);
+    border-top: 0.5px solid var(--zc-outline-variant);
+    flex-wrap: nowrap;
+}
+
+.zymarg-master-select {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.zymarg-selected-label {
+    font-size: 12px;
+    color: var(--zc-text-muted);
+    white-space: nowrap;
+}
+
+.zymarg-action-grand-wrap {
+    margin-left: auto;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.zymarg-action-grand-label {
+    font-size: 11px;
+    color: var(--zc-outline);
+    display: block;
+    line-height: 1.2;
+}
+
+.zymarg-action-grand-total {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--zc-primary);
+    display: block;
+    white-space: nowrap;
+}
+
+/* ─── 5e. Checkout button + spinner ─────────────────────────────────────── */
+
+.zymarg-checkout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--zc-primary-fixed);
+    background-color: var(--zc-primary);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 22px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background-color var(--zc-transition-fast);
+    position: relative;
+}
+
+.zymarg-checkout-btn:hover:not(:disabled) {
+    background-color: var(--zc-primary-container);
+}
+
+.zymarg-checkout-btn:disabled,
+.zymarg-checkout-btn.zymarg-btn-loading {
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+/* Spinner */
+.zymarg-btn-spinner {
+    display: none;
+    width: 13px;
+    height: 13px;
+    border: 2px solid rgba(255, 214, 251, 0.35);
+    border-top-color: var(--zc-primary-fixed);
+    border-radius: 50%;
+    animation: zymarg-spin 0.75s linear infinite;
+    flex-shrink: 0;
+}
+
+.zymarg-btn-loading .zymarg-btn-spinner {
+    display: inline-block;
+}
+
+.zymarg-btn-loading .zymarg-btn-label,
+.zymarg-btn-loading .zymarg-btn-icon,
+.zymarg-btn-loading .zymarg-btn-arrow {
+    opacity: 0.5;
+}
+
+@keyframes zymarg-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* =============================================================================
+   6. Edit Mode — body.zymarg-edit-mode
+   ============================================================================= */
+
+/* Reveal delete button */
+.zymarg-edit-mode .zymarg-delete-btn {
+    display: inline-flex !important;
+}
+
+/* Hide checkout-irrelevant elements in edit mode */
+.zymarg-edit-mode .zymarg-save-later-btn {
+    display: none !important;
+}
+
+.zymarg-edit-mode .zymarg-coupon-toggle,
+.zymarg-edit-mode .zymarg-coupon-form,
+.zymarg-edit-mode .zymarg-applied-coupon-badge {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Row hover in edit mode — red tint */
+.zymarg-edit-mode .zymarg-product-row:hover {
+    background-color: #fff7f7;
+}
+
+/* Checkboxes in edit mode — red accent */
+.zymarg-edit-mode .zymarg-product-cb {
+    accent-color: var(--zc-error-text);
+}
+
+/* =============================================================================
+   7. AJAX Loading States
+   ============================================================================= */
+
+.zymarg-loading {
+    opacity: 0.55;
+    pointer-events: none;
+    position: relative;
+}
+
+/* Inline error banner */
+.zymarg-inline-error {
+    background-color: var(--zc-error-bg);
+    color: var(--zc-error-text);
+    border: 0.5px solid var(--zc-error-text);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+/* Row removal fade */
+.zymarg-removing {
+    transition: opacity 0.26s ease, transform 0.26s ease;
+    opacity: 1;
+}
+
+/* Restore sentinel (hidden by design, read by JS) */
+#zymarg-restore-sentinel {
+    display: none;
+    visibility: hidden;
+}
+
+/* =============================================================================
+   8. Accessibility Helpers
+   ============================================================================= */
+
+/* Focus-visible outlines */
+.zymarg-edit-btn:focus-visible,
+.zymarg-delete-btn:focus-visible,
+.zymarg-save-later-btn:focus-visible,
+.zymarg-coupon-toggle:focus-visible,
+.zymarg-coupon-apply:focus-visible,
+.zymarg-checkout-btn:focus-visible,
+.zymarg-qty-btn:focus-visible,
+.zymarg-move-to-cart-btn:focus-visible,
+.zymarg-remove-saved-btn:focus-visible,
+.zymarg-subtotal-bar:focus-visible {
+    outline: 2px solid var(--zc-primary);
+    outline-offset: 2px;
+}
+
+/* Rows that are out of stock — dim slightly */
+.zymarg-row-out-of-stock {
+    opacity: 0.75;
+}
+
+.zymarg-saved-out-of-stock {
+    opacity: 0.75;
+}

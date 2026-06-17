@@ -1,0 +1,254 @@
+/**
+ * ZYMARG Cart — Elementor editor preview stylesheet.
+ *
+ * Loaded only inside the Elementor editor iframe via
+ * elementor/editor/after_enqueue_scripts.
+ *
+ * Responsibilities:
+ *  - Gives the content_template() previews a usable appearance so widget
+ *    placement and sizing feel representative of the live front end.
+ *  - Provides placeholder visual cues for empty widget states.
+ *  - Keeps base brand tokens consistent without loading the full frontend CSS.
+ *
+ * This file intentionally does NOT load on the public frontend.
+ *
+ * @package ZymargCart
+ * @since   1.0.0
+ */
+
+/* =============================================================================
+   Editor Brand Tokens
+   ============================================================================= */
+
+.elementor-widget-zymarg-cart-header,
+.elementor-widget-zymarg-cart-body,
+.elementor-widget-zymarg-cart-total {
+    --zc-primary:           #9500a5;
+    --zc-primary-fixed:     #ffd6fb;
+    --zc-primary-container: #bd00d1;
+    --zc-text-body:         #131b2e;
+    --zc-text-muted:        #534152;
+    --zc-outline:           #857183;
+    --zc-outline-variant:   #d8bfd3;
+    --zc-surface:           #faf8ff;
+    --zc-surface-container: #eaedff;
+    --zc-surface-lowest:    #ffffff;
+}
+
+/* =============================================================================
+   Editor placeholder panel
+   Used when the widget has no live cart data in the editor context.
+   ============================================================================= */
+
+.zymarg-editor-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 28px 20px;
+    background-color: var(--zc-surface);
+    border: 1.5px dashed var(--zc-outline-variant);
+    border-radius: 12px;
+    text-align: center;
+    color: var(--zc-outline);
+    font-size: 13px;
+    min-height: 80px;
+}
+
+.zymarg-editor-placeholder .zymarg-editor-icon {
+    font-size: 28px;
+    color: var(--zc-primary);
+    opacity: 0.6;
+}
+
+.zymarg-editor-placeholder strong {
+    color: var(--zc-text-body);
+    font-weight: 500;
+}
+
+/* =============================================================================
+   Widget 1 — Cart Header (editor preview)
+   Mirrors the live .zymarg-cart-header layout.
+   ============================================================================= */
+
+.elementor-widget-zymarg-cart-header .zymarg-cart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background-color: var(--zc-surface);
+    border: 0.5px solid var(--zc-outline-variant);
+    border-radius: 12px;
+    padding: 14px 20px;
+}
+
+.elementor-widget-zymarg-cart-header .zymarg-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.elementor-widget-zymarg-cart-header .zymarg-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.elementor-widget-zymarg-cart-header .zymarg-cart-icon {
+    font-size: 18px;
+    color: var(--zc-primary);
+}
+
+.elementor-widget-zymarg-cart-header .zymarg-cart-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--zc-text-body);
+}
+
+.elementor-widget-zymarg-cart-header .zymarg-item-count {
+    font-size: 13px;
+    color: var(--zc-outline);
+}
+
+.elementor-widget-zymarg-cart-header .zymarg-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--zc-primary);
+    border: 0.5px solid var(--zc-primary);
+    border-radius: 8px;
+    padding: 6px 14px;
+    background: transparent;
+    cursor: default;
+}
+
+/* =============================================================================
+   Widget 2 — Cart Body (editor preview)
+   ============================================================================= */
+
+.elementor-widget-zymarg-cart-body .zymarg-cart-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.elementor-widget-zymarg-cart-body .zymarg-vendor-block {
+    background-color: var(--zc-surface-lowest);
+    border: 0.5px solid var(--zc-outline-variant);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.elementor-widget-zymarg-cart-body .zymarg-vendor-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background-color: var(--zc-surface-container);
+    border-bottom: 0.5px solid var(--zc-outline-variant);
+}
+
+.elementor-widget-zymarg-cart-body .zymarg-vendor-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--zc-primary);
+}
+
+/* Editor placeholder row inside vendor block */
+.elementor-widget-zymarg-cart-body .zymarg-editor-rows-placeholder {
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--zc-outline);
+    font-style: italic;
+}
+
+/* =============================================================================
+   Widget 3 — Cart Total (editor preview)
+   ============================================================================= */
+
+.elementor-widget-zymarg-cart-total .zymarg-cart-total {
+    background-color: var(--zc-surface-lowest);
+    border: 0.5px solid var(--zc-outline-variant);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.elementor-widget-zymarg-cart-total .zymarg-subtotal-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 20px;
+    background-color: var(--zc-surface-container);
+    border-bottom: 0.5px solid var(--zc-outline-variant);
+    cursor: default;
+}
+
+.elementor-widget-zymarg-cart-total .zymarg-subtotal-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--zc-text-muted);
+}
+
+.elementor-widget-zymarg-cart-total .zymarg-breakdown-arrow {
+    font-size: 14px;
+    color: var(--zc-primary);
+}
+
+/* Keep breakdown panel visible in editor for layout reference */
+.elementor-widget-zymarg-cart-total .zymarg-breakdown-panel {
+    display: grid;
+    grid-template-rows: 1fr; /* always open in editor */
+}
+
+.elementor-widget-zymarg-cart-total .zymarg-breakdown-inner {
+    overflow: hidden;
+    min-height: 0;
+    padding: 14px 20px;
+}
+
+.elementor-widget-zymarg-cart-total .zymarg-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    background-color: var(--zc-surface);
+    border-top: 0.5px solid var(--zc-outline-variant);
+}
+
+.elementor-widget-zymarg-cart-total .zymarg-checkout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--zc-primary-fixed);
+    background-color: var(--zc-primary);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 22px;
+    cursor: default;
+    margin-left: auto;
+}
+
+.elementor-widget-zymarg-cart-total .zymarg-action-grand-total {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--zc-primary);
+}
+
+/* =============================================================================
+   Editor panel visual hints
+   ============================================================================= */
+
+/* Highlight widgets in the panel when hovered in editor */
+.elementor-widget-zymarg-cart-header:hover,
+.elementor-widget-zymarg-cart-body:hover,
+.elementor-widget-zymarg-cart-total:hover {
+    outline: 1px dashed var(--zc-primary);
+    outline-offset: 2px;
+}
