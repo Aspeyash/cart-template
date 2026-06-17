@@ -3,14 +3,14 @@
  * Plugin Name:       ZYMARG Cart
  * Plugin URI:        https://zymarg.com
  * Description:       A fully customizable multi-vendor cart plugin for ZYMARG marketplace. Built for WordPress, WooCommerce, Elementor Pro, and Dokan Pro. Features 3 interconnected Elementor widgets, partial checkout, Save for Later (hybrid), and ~300 responsive Elementor controls.
- * Version:           1.0.8
+ * Version:           1.1.0
  * Author:            ZYMARG
  * Author URI:        https://zymarg.com
  * Text Domain:       zymarg-cart
  * Domain Path:       /languages
  * Requires at least: 6.0
  * Tested up to:      6.7
- * Requires PHP:      8.0
+ * Requires PHP:      8.1
  * WC requires at least: 9.0
  * WC tested up to:   9.9
  * Elementor tested up to: 3.99
@@ -30,16 +30,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 // -------------------------------------------------------------------------
 // PHP version gate — must run before anything else.
 // -------------------------------------------------------------------------
-if ( version_compare( PHP_VERSION, '8.0', '<' ) ) {
+if ( version_compare( PHP_VERSION, '8.1', '<' ) ) {
 	add_action(
 		'admin_notices',
 		static function (): void {
 			echo '<div class="notice notice-error is-dismissible"><p>' .
 				wp_kses_post(
 					sprintf(
-						/* translators: %s: Minimum PHP version required. */
-						__( '<strong>ZYMARG Cart</strong> requires PHP <strong>%s</strong> or higher. Your server is running PHP <strong>%s</strong>. Please upgrade your PHP version.', 'zymarg-cart' ),
-						'8.0',
+						/* translators: 1: Minimum PHP version required, 2: Current PHP version. */
+						__( '<strong>ZYMARG Cart</strong> requires PHP <strong>%1$s</strong> or higher. Your server is running PHP <strong>%2$s</strong>. Please upgrade your PHP version.', 'zymarg-cart' ),
+						'8.1',
 						PHP_VERSION
 					)
 				) .
@@ -52,12 +52,12 @@ if ( version_compare( PHP_VERSION, '8.0', '<' ) ) {
 // -------------------------------------------------------------------------
 // Plugin constants.
 // -------------------------------------------------------------------------
-define( 'ZYMARG_CART_VERSION',          '1.0.8' );
+define( 'ZYMARG_CART_VERSION',          '1.1.0' );
 define( 'ZYMARG_CART_FILE',             __FILE__ );
 define( 'ZYMARG_CART_PATH',             plugin_dir_path( __FILE__ ) );
 define( 'ZYMARG_CART_URL',              plugin_dir_url( __FILE__ ) );
 define( 'ZYMARG_CART_BASENAME',         plugin_basename( __FILE__ ) );
-define( 'ZYMARG_CART_MIN_PHP',          '8.0' );
+define( 'ZYMARG_CART_MIN_PHP',          '8.1' );
 define( 'ZYMARG_CART_MIN_WP',           '6.0' );
 define( 'ZYMARG_CART_MIN_WC',           '9.0' );
 define( 'ZYMARG_CART_MIN_ELEMENTOR',    '3.0.0' );

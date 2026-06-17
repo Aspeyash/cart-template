@@ -3,8 +3,8 @@ Contributors: zymarg
 Tags: woocommerce, cart, multi-vendor, elementor, dokan
 Requires at least: 6.0
 Tested up to: 6.7
-Requires PHP: 8.0
-Stable tag: 1.0.8
+Requires PHP: 8.1
+Stable tag: 1.1.0
 WC requires at least: 9.0
 WC tested up to: 9.9
 License: GPLv2 or later
@@ -24,7 +24,7 @@ shopping cart experience.
   quantity stepper, per-product and per-vendor coupons, Save for Later, stock
   warnings, and vendor subtotals.
 * **Widget 3 — Cart Total**: Sliding order summary breakdown (subtotal, discount,
-  shipping, SST tax, grand total), master select-all, and partial checkout.
+  shipping, tax, grand total), master select-all, and partial checkout.
 
 = Key Features =
 * Partial checkout — buy only selected items; unselected items stay in cart.
@@ -32,7 +32,9 @@ shopping cart experience.
   customers) with automatic merge on login.
 * ~300 Elementor controls covering every style, layout, and behaviour option
   with full Desktop / Tablet / Mobile responsive values.
-* PHP 8.0+ compatible (tested up to PHP 8.4), WooCommerce HPOS compatible, Dokan Pro integrated.
+* Filterable tax label — defaults to "Tax (6% SST)" for Malaysia, override
+  via the `zymarg_cart_tax_label` filter for other regions.
+* PHP 8.1+ compatible (tested up to PHP 8.4), WooCommerce HPOS compatible, Dokan Pro integrated.
 * Fully translatable via standard WordPress i18n.
 
 == Installation ==
@@ -55,6 +57,33 @@ to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
 
 == Changelog ==
 
+= 1.1.0 =
+* **Breaking:** Minimum PHP version is now 8.1 (was 8.0).
+* Save-for-Later item-key hash format changed from PHP serialize() to
+  wp_json_encode() for stability across PHP versions. Existing saved items
+  are migrated lazily on first read after upgrade — no manual action needed,
+  no data loss.
+* Tax line label is now filterable via the `zymarg_cart_tax_label` filter
+  (default remains "Tax (6% SST)" for Malaysia).
+* Fixed accessibility bug: checkout button aria-label was double-escaped,
+  causing entities like "&" to render as "&amp;amp;" in screen readers.
+* Fixed a guest-to-logged-in merge fallback that was effectively a no-op
+  due to an incorrect `is_user_logged_in()` gate; the transient lock inside
+  the merge already handles deduplication, so the gate has been removed.
+* `Helpers::send_success()` and `Helpers::send_error()` now use the PHP 8.1
+  `: never` return type for accurate static analysis.
+* Added inline documentation explaining the priority chain between the
+  Save-for-Later merge hooks and the Partial-Checkout login hook.
+* Removed dead `wp_clear_scheduled_hook()` calls in `deactivate()` for
+  cron hooks that were never scheduled.
+* Removed literal `{includes,widgets,...}` directory artefact that shipped
+  with v1.0.8 due to a `mkdir` brace-expansion mishap.
+* Added `Tested up to: 6.7` plugin header so it matches readme.txt.
+* `vendor_subtotals_html` is now always present in the AJAX totals response,
+  including when the cart is empty — frontend JS no longer hits `undefined`
+  on that branch.
+* Removed duplicate `$user_id` assignment in `handle_zymarg_save_for_later`.
+
 = 1.0.8 =
 * Arrow icon now always visible in Order Summary bar (forced independent of Elementor toggle setting).
 * Fixed ghost whitespace below Order Summary bar when panel is collapsed.
@@ -73,6 +102,10 @@ to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Requires PHP 8.1+. Upgrades the saved-items hash format — existing saved
+items are migrated automatically on first read, no manual action required.
 
 = 1.0.0 =
 Initial release.

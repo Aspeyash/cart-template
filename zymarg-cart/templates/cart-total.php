@@ -84,17 +84,32 @@ $order_summary_text = ! empty( $settings['order_summary_text'] )
 	? esc_html( $settings['order_summary_text'] )
 	: esc_html__( 'Order Summary', 'zymarg-cart' );
 
+/**
+ * Filters the default tax line label.
+ * See Zymarg_Cart::build_localized_data() for documentation.
+ *
+ * @since 1.1.0
+ */
+$tax_label_default = (string) apply_filters(
+	'zymarg_cart_tax_label',
+	__( 'Tax (6% SST)', 'zymarg-cart' )
+);
 $tax_label_text = ! empty( $settings['tax_label_text'] )
 	? esc_html( $settings['tax_label_text'] )
-	: esc_html__( 'Tax (6% SST)', 'zymarg-cart' );
+	: esc_html( $tax_label_default );
 
 $grand_label_text = ! empty( $settings['grand_total_label_text'] )
 	? esc_html( $settings['grand_total_label_text'] )
 	: esc_html__( 'Grand Total', 'zymarg-cart' );
 
-$checkout_btn_text = ! empty( $settings['checkout_btn_text'] )
-	? esc_html( $settings['checkout_btn_text'] )
-	: esc_html__( 'Proceed to Checkout', 'zymarg-cart' );
+// Keep both raw and escaped forms of the checkout button label.
+// The aria-label below combines the raw value with the price-stripped grand
+// total, then escapes the COMBINED string once via esc_attr — pre-escaping
+// either part would result in double-escaping (e.g. "M&M's" → "M&amp;amp;M…").
+$checkout_btn_text_raw = ! empty( $settings['checkout_btn_text'] )
+	? (string) $settings['checkout_btn_text']
+	: __( 'Proceed to Checkout', 'zymarg-cart' );
+$checkout_btn_text = esc_html( $checkout_btn_text_raw );
 
 // ── Selected label: "n of n selected" ───────────────────────────────────
 $selected_label = sprintf(
@@ -313,7 +328,7 @@ if ( $open_default ) {
 				type="button"
 				class="zymarg-checkout-btn"
 				data-loading="<?php echo $btn_loading_on ? '1' : '0'; ?>"
-				aria-label="<?php echo esc_attr( $checkout_btn_text . ' — ' . strip_tags( $grand_html ) ); ?>"
+				aria-label="<?php echo esc_attr( $checkout_btn_text_raw . ' — ' . wp_strip_all_tags( $grand_html ) ); ?>"
 			>
 				<?php if ( $show_checkout_icon ) : ?>
 					<i class="ti ti-lock zymarg-btn-icon" aria-hidden="true"></i>

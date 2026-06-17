@@ -139,6 +139,13 @@ final class Zymarg_Cart_Session {
 	 * by item key. Returns an empty array if the session is unavailable or
 	 * no items have been saved.
 	 *
+	 * Lazy migration (since v1.1.0): if any item's array-key does not match
+	 * the hash that {@see Zymarg_Cart_Helpers::generate_item_key()} produces
+	 * for that item's product/variation today, the entire array is re-keyed
+	 * and written back. This handles the v1.0.x → v1.1.0 hash format change
+	 * (serialize → wp_json_encode) without requiring any cron job or batch
+	 * migration. Idempotent and zero-cost for already-migrated data.
+	 *
 	 * @return array<string, array<string, mixed>>
 	 */
 	public static function get_saved_items(): array {
@@ -148,7 +155,61 @@ final class Zymarg_Cart_Session {
 		}
 
 		$saved = $session->get( Zymarg_Cart_Helpers::SESSION_KEY_SAVED, [] );
-		return is_array( $saved ) ? $saved : [];
+		if ( ! is_array( $saved ) || empty( $saved ) ) {
+			return [];
+		}
+
+		return self::maybe_rekey_items( $session, $saved );
+	}
+
+	/**
+	 * Re-keys a session saved-items array if any item's stored hash no longer
+	 * matches the canonical hash produced by Helpers::generate_item_key().
+	 *
+	 * No-op when every key already matches (the common path post-migration).
+	 *
+	 * @param \WC_Session                          $session WC session handle for write-back.
+	 * @param array<string, array<string, mixed>>  $saved   Current saved-items array.
+	 *
+	 * @return array<string, array<string, mixed>> Possibly re-keyed array.
+	 */
+	private static function maybe_rekey_items( \WC_Session $session, array $saved ): array {
+		$needs_rekey = false;
+		foreach ( $saved as $key => $item ) {
+			$expected = Zymarg_Cart_Helpers::generate_item_key(
+				(int) ( $item['product_id'] ?? 0 ),
+				(int) ( $item['variation_id'] ?? 0 ),
+				(array) ( $item['variation'] ?? [] )
+			);
+			if ( $expected !== $key ) {
+				$needs_rekey = true;
+				break;
+			}
+		}
+
+		if ( ! $needs_rekey ) {
+			return $saved;
+		}
+
+		$new_saved = [];
+		foreach ( $saved as $item ) {
+			$new_key = Zymarg_Cart_Helpers::generate_item_key(
+				(int) ( $item['product_id'] ?? 0 ),
+				(int) ( $item['variation_id'] ?? 0 ),
+				(array) ( $item['variation'] ?? [] )
+			);
+			$item['item_key']        = $new_key;
+			$new_saved[ $new_key ]   = $item;
+		}
+
+		$session->set( Zymarg_Cart_Helpers::SESSION_KEY_SAVED, $new_saved );
+
+		Zymarg_Cart_Helpers::log(
+			'Session::maybe_rekey_items — saved items lazily migrated to v1.1.0 hash format.',
+			[ 'count' => count( $new_saved ) ]
+		);
+
+		return $new_saved;
 	}
 
 	/**

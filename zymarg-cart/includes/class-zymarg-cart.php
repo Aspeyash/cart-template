@@ -458,7 +458,21 @@ final class Zymarg_Cart {
 				'subtotal'       => __( 'Subtotal',                          'zymarg-cart' ),
 				'discount'       => __( 'Discount',                          'zymarg-cart' ),
 				'shipping'       => __( 'Shipping',                          'zymarg-cart' ),
-				'tax'            => __( 'Tax (6% SST)',                      'zymarg-cart' ),
+				/**
+				 * Filters the tax line label shown in cart breakdowns.
+				 *
+				 * The default value is Malaysia-specific ("Tax (6% SST)") because
+				 * ZYMARG is a Malaysian marketplace. Override this filter to
+				 * localise the label for other regions or when SST rates change.
+				 *
+				 * @since 1.1.0
+				 *
+				 * @param string $label Default tax line label.
+				 */
+				'tax'            => (string) apply_filters(
+					'zymarg_cart_tax_label',
+					__( 'Tax (6% SST)', 'zymarg-cart' )
+				),
 				'grandTotal'     => __( 'Grand Total',                       'zymarg-cart' ),
 				'orderSummary'   => __( 'Order Summary',                     'zymarg-cart' ),
 			],

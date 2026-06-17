@@ -66,6 +66,14 @@ final class Zymarg_Cart_Partial {
 	/**
 	 * Registers all WordPress and WooCommerce hooks.
 	 * Called once from Zymarg_Cart::register_hooks() after all includes load.
+	 *
+	 * Hook ordering note:
+	 * The wp_login hook here is registered at priority 25, AFTER
+	 * Zymarg_Cart_Merge::on_wp_login (priority 10), so the Save-for-Later
+	 * merge runs first and the partial-checkout backup migration runs
+	 * after. The two operate on different storage keys so they do not
+	 * conflict, but keeping a deterministic order makes log traces and
+	 * debugging predictable.
 	 */
 	public static function init(): void {
 

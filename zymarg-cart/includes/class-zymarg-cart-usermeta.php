@@ -124,6 +124,14 @@ final class Zymarg_Cart_Usermeta {
 	 * Returns all saved items for a user as an associative array keyed by
 	 * item key. Returns an empty array if no items exist or user ID is invalid.
 	 *
+	 * Lazy migration (since v1.1.0): if any item's array-key does not match
+	 * the hash that {@see Zymarg_Cart_Helpers::generate_item_key()} produces
+	 * for that item's product/variation today, the entire array is re-keyed
+	 * and written back to user meta. This handles the v1.0.x → v1.1.0 hash
+	 * format change (serialize → wp_json_encode) without requiring any cron
+	 * job or batch migration. Idempotent and zero-cost for already-migrated
+	 * data.
+	 *
 	 * @param int $user_id WordPress user ID.
 	 * @return array<string, array<string, mixed>>
 	 */
@@ -133,7 +141,61 @@ final class Zymarg_Cart_Usermeta {
 		}
 
 		$saved = get_user_meta( $user_id, Zymarg_Cart_Helpers::USERMETA_KEY_SAVED, true );
-		return is_array( $saved ) ? $saved : [];
+		if ( ! is_array( $saved ) || empty( $saved ) ) {
+			return [];
+		}
+
+		return self::maybe_rekey_items( $user_id, $saved );
+	}
+
+	/**
+	 * Re-keys a user's saved-items array if any item's stored hash no longer
+	 * matches the canonical hash produced by Helpers::generate_item_key().
+	 *
+	 * No-op when every key already matches (the common path post-migration).
+	 *
+	 * @param int                                  $user_id WordPress user ID.
+	 * @param array<string, array<string, mixed>>  $saved   Current saved-items array.
+	 *
+	 * @return array<string, array<string, mixed>> Possibly re-keyed array.
+	 */
+	private static function maybe_rekey_items( int $user_id, array $saved ): array {
+		$needs_rekey = false;
+		foreach ( $saved as $key => $item ) {
+			$expected = Zymarg_Cart_Helpers::generate_item_key(
+				(int) ( $item['product_id'] ?? 0 ),
+				(int) ( $item['variation_id'] ?? 0 ),
+				(array) ( $item['variation'] ?? [] )
+			);
+			if ( $expected !== $key ) {
+				$needs_rekey = true;
+				break;
+			}
+		}
+
+		if ( ! $needs_rekey ) {
+			return $saved;
+		}
+
+		$new_saved = [];
+		foreach ( $saved as $item ) {
+			$new_key = Zymarg_Cart_Helpers::generate_item_key(
+				(int) ( $item['product_id'] ?? 0 ),
+				(int) ( $item['variation_id'] ?? 0 ),
+				(array) ( $item['variation'] ?? [] )
+			);
+			$item['item_key']      = $new_key;
+			$new_saved[ $new_key ] = $item;
+		}
+
+		update_user_meta( $user_id, Zymarg_Cart_Helpers::USERMETA_KEY_SAVED, $new_saved );
+
+		Zymarg_Cart_Helpers::log(
+			'Usermeta::maybe_rekey_items — saved items lazily migrated to v1.1.0 hash format.',
+			[ 'user_id' => $user_id, 'count' => count( $new_saved ) ]
+		);
+
+		return $new_saved;
 	}
 
 	/**

@@ -67,6 +67,15 @@ final class Zymarg_Cart_Helpers {
 	 * Two calls with identical arguments always produce the same key, so the
 	 * same physical product+variation will not be saved twice.
 	 *
+	 * Hash format (since v1.1.0):
+	 *   md5( "{product_id}|{variation_id}|{json_encoded_sorted_variation}" )
+	 *
+	 * The pre-1.1.0 hash used PHP serialize() instead of wp_json_encode().
+	 * Existing saved-items written with the old format are re-keyed lazily
+	 * by Zymarg_Cart_Session::get_saved_items() and
+	 * Zymarg_Cart_Usermeta::get_saved_items() the first time the data is
+	 * accessed after upgrade — see those methods for the migration logic.
+	 *
 	 * @param int                  $product_id   WooCommerce product ID.
 	 * @param int                  $variation_id WooCommerce variation ID (0 for simple products).
 	 * @param array<string, mixed> $variation    Variation attributes, e.g. ['attribute_pa_size' => 'L'].
@@ -80,10 +89,16 @@ final class Zymarg_Cart_Helpers {
 	): string {
 		ksort( $variation );
 
+		// Use wp_json_encode() instead of serialize() so the hash is stable
+		// across PHP versions and free of PHP's internal serialization quirks.
+		$variation_part = ! empty( $variation )
+			? (string) wp_json_encode( $variation )
+			: '';
+
 		return md5(
 			$product_id . '|' .
 			$variation_id . '|' .
-			( ! empty( $variation ) ? serialize( $variation ) : '' ) // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+			$variation_part
 		);
 	}
 
@@ -161,7 +176,7 @@ final class Zymarg_Cart_Helpers {
 	 *
 	 * @return never
 	 */
-	public static function send_success( mixed $data = null, string $message = '' ): void {
+	public static function send_success( mixed $data = null, string $message = '' ): never {
 		$response = [
 			'success' => true,
 			'nonce'   => wp_create_nonce( self::NONCE_ACTION ),
@@ -191,7 +206,7 @@ final class Zymarg_Cart_Helpers {
 		string $message,
 		int $code = 400,
 		mixed $data = null
-	): void {
+	): never {
 		$response = [
 			'success' => false,
 			'message' => $message,
