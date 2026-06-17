@@ -985,19 +985,20 @@ final class Zymarg_Cart_Dokan {
 	 */
 	private static function empty_totals(): array {
 		return [
-			'subtotal'            => 0.0,
-			'subtotal_html'       => wc_price( 0.0 ),
-			'discount'            => 0.0,
-			'discount_html'       => '',
-			'shipping'            => 0.0,
-			'shipping_html'       => __( 'Calculated at checkout', 'zymarg-cart' ),
-			'shipping_calculated' => false,
-			'tax'                 => 0.0,
-			'tax_html'            => wc_price( 0.0 ),
-			'grand_total'         => 0.0,
-			'grand_total_html'    => wc_price( 0.0 ),
-			'selected_count'      => 0,
-			'coupons'             => [],
+			'subtotal'              => 0.0,
+			'subtotal_html'         => wc_price( 0.0 ),
+			'discount'              => 0.0,
+			'discount_html'         => '',
+			'shipping'              => 0.0,
+			'shipping_html'         => __( 'Calculated at checkout', 'zymarg-cart' ),
+			'shipping_calculated'   => false,
+			'tax'                   => 0.0,
+			'tax_html'              => wc_price( 0.0 ),
+			'grand_total'           => 0.0,
+			'grand_total_html'      => wc_price( 0.0 ),
+			'selected_count'        => 0,
+			'coupons'               => [],
+			'vendor_subtotals_html' => [], // keyed by vendor_id (v1.0.8) — empty when cart unavailable.
 		];
 	}
 }

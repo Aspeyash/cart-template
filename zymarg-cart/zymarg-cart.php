@@ -9,6 +9,7 @@
  * Text Domain:       zymarg-cart
  * Domain Path:       /languages
  * Requires at least: 6.0
+ * Tested up to:      6.7
  * Requires PHP:      8.0
  * WC requires at least: 9.0
  * WC tested up to:   9.9

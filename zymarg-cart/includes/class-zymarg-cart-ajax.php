@@ -654,7 +654,6 @@ final class Zymarg_Cart_Ajax {
 			'current_price' => $saved_price,
 			'price_changed' => false,
 		];
-		$user_id          = get_current_user_id();
 		$show_move_btn    = true;
 		$show_remove_btn  = true;
 		$show_price_changed = true;

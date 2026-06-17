@@ -672,10 +672,6 @@ final class Zymarg_Cart {
 	 * those are preserved in case the plugin is reactivated.
 	 */
 	public static function deactivate(): void {
-		// Clear any scheduled background events.
-		wp_clear_scheduled_hook( 'zymarg_cart_cleanup_expired_backups' );
-		wp_clear_scheduled_hook( 'zymarg_cart_refresh_saved_item_prices' );
-
 		// Remove activation transient.
 		delete_transient( 'zymarg_cart_activated' );
 
