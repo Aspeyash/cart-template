@@ -70,7 +70,7 @@ $sub_message  = esc_html__( "Looks like you haven't added anything yet.", 'zymar
 		target="<?php echo esc_attr( $btn_target ); ?>"
 		<?php echo $btn_rel ? 'rel="' . esc_attr( $btn_rel ) . '"' : ''; ?>
 	>
-		<i class="ti ti-arrow-left" aria-hidden="true"></i>
+		<?php echo Zymarg_Cart_Helpers::icon( 'arrow-left' ); ?>
 		<?php echo $btn_text; ?>
 	</a>
 

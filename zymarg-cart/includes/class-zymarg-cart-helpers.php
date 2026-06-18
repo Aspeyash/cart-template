@@ -527,4 +527,100 @@ final class Zymarg_Cart_Helpers {
 			),
 		];
 	}
+
+	// =========================================================================
+	// ICON LIBRARY (v1.3.0)
+	// =========================================================================
+	//
+	// The plugin previously rendered icons via the Tabler Icons web-font
+	// (`<i class="ti ti-name">`). On any environment that did not have the
+	// Tabler font enqueued (notably the user's Pantheon dev environment and
+	// many Astra / WooCommerce installs), every icon silently failed to
+	// render. v1.3.0 inlines all icons as SVG instead, removing the external
+	// dependency entirely.
+	//
+	// SVG paths are based on Tabler Icons (https://tabler-icons.io/) — MIT
+	// licensed — with the `currentColor` stroke so they inherit the parent's
+	// text colour, and `width: 1em; height: 1em` sizing on the wrapper span
+	// so font-size scales them just like a font glyph.
+
+	/**
+	 * Returns inline-SVG icon markup for the given icon name.
+	 *
+	 * @param string $name           Icon identifier (e.g. 'minus', 'plus', 'shopping-cart').
+	 * @param string $extra_classes  Additional CSS classes to add to the wrapper span
+	 *                               (e.g. 'zymarg-cart-icon' so existing widget
+	 *                               selectors targeting that class continue to work).
+	 *
+	 * @return string HTML markup. Empty string if the icon name is unknown.
+	 */
+	public static function icon( string $name, string $extra_classes = '' ): string {
+		$library = self::get_icon_library();
+		if ( ! isset( $library[ $name ] ) ) {
+			return '';
+		}
+
+		$classes = trim( 'zymarg-icon zymarg-icon-' . sanitize_html_class( $name ) . ' ' . $extra_classes );
+
+		return sprintf(
+			'<span class="%s" aria-hidden="true">%s</span>',
+			esc_attr( $classes ),
+			$library[ $name ] // Path strings are static, hard-coded constants — safe to echo.
+		);
+	}
+
+	/**
+	 * Returns the icon SVG library, keyed by icon name.
+	 * Cached in a static variable on first call.
+	 *
+	 * @return array<string,string>
+	 */
+	private static function get_icon_library(): array {
+		static $library = null;
+		if ( $library !== null ) {
+			return $library;
+		}
+
+		$attrs = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"';
+
+		$library = [
+			// Quantity stepper.
+			'minus' => '<svg ' . $attrs . '><path d="M5 12h14"/></svg>',
+			'plus'  => '<svg ' . $attrs . '><path d="M12 5v14M5 12h14"/></svg>',
+
+			// Save for Later.
+			'bookmark' => '<svg ' . $attrs . '><path d="M9 4h6a2 2 0 0 1 2 2v14l-5-3-5 3V6a2 2 0 0 1 2-2"/></svg>',
+
+			// Coupon.
+			'tag'        => '<svg ' . $attrs . '><path d="M7.86 6h-2.84a2.02 2.02 0 0 0-2.02 2.02v2.84c0 .54.21 1.05.59 1.43l6.12 6.12a2.02 2.02 0 0 0 2.86 0l2.84-2.84a2.02 2.02 0 0 0 0-2.86l-6.12-6.12A2.02 2.02 0 0 0 7.86 6Z"/><path d="M6 9h.01"/></svg>',
+			'discount-2' => '<svg ' . $attrs . '><path d="M9 15l6-6"/><circle cx="9.5" cy="9.5" r="1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="14.5" r="1" fill="currentColor" stroke="none"/><rect x="3" y="3" width="18" height="18" rx="3"/></svg>',
+
+			// Status indicators.
+			'alert-triangle' => '<svg ' . $attrs . '><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M5 19h14a2 2 0 0 0 1.84-2.75l-7.1-12.25a2 2 0 0 0-3.5 0l-7.1 12.25A2 2 0 0 0 5 19Z"/></svg>',
+			'trending-up'    => '<svg ' . $attrs . '><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>',
+
+			// Generic actions.
+			'x'     => '<svg ' . $attrs . '><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+			'check' => '<svg ' . $attrs . '><path d="M5 12l5 5L20 7"/></svg>',
+			'edit'  => '<svg ' . $attrs . '><path d="M7 7H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1"/><path d="M20.39 6.59a2.1 2.1 0 0 0-2.97-2.97L9 12.04V15h2.96l8.43-8.41Z"/><path d="m16 5 3 3"/></svg>',
+			'trash' => '<svg ' . $attrs . '><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>',
+
+			// Cart / shopping.
+			'shopping-cart'      => '<svg ' . $attrs . '><circle cx="6" cy="19" r="2"/><circle cx="17" cy="19" r="2"/><path d="M17 17H6V3H4"/><path d="m6 5 14 1-1 7H6"/></svg>',
+			'shopping-cart-plus' => '<svg ' . $attrs . '><circle cx="6" cy="19" r="2"/><path d="M12.5 17H6V3H4"/><path d="m6 5 14 1-1 7h-7"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>',
+
+			// Navigation arrows.
+			'arrow-left'    => '<svg ' . $attrs . '><path d="M5 12h14"/><path d="m11 18-6-6"/><path d="m11 6-6 6"/></svg>',
+			'arrow-right'   => '<svg ' . $attrs . '><path d="M5 12h14"/><path d="m13 18 6-6"/><path d="m13 6 6 6"/></svg>',
+			'chevron-right' => '<svg ' . $attrs . '><path d="m9 6 6 6-6 6"/></svg>',
+			'chevron-up'    => '<svg ' . $attrs . '><path d="m6 15 6-6 6 6"/></svg>',
+			'chevron-down'  => '<svg ' . $attrs . '><path d="m6 9 6 6 6-6"/></svg>',
+
+			// Lock.
+			'lock' => '<svg ' . $attrs . '><rect x="5" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="16" r="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+		];
+
+		return $library;
+	}
 }
+

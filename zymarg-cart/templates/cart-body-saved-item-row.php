@@ -108,7 +108,7 @@ if ( ! $s_is_purchasable ){ $row_classes[] = 'zymarg-saved-unpurchasable'; }
 						__( 'Was %s', 'zymarg-cart' ),
 						strip_tags( wc_price( $s_saved_price ) )
 					) ); ?>">
-					<i class="ti ti-trending-up" aria-hidden="true"></i>
+					<?php echo Zymarg_Cart_Helpers::icon( 'trending-up' ); ?>
 					<?php esc_html_e( 'Price changed', 'zymarg-cart' ); ?>
 				</span>
 			<?php endif; ?>
@@ -128,7 +128,7 @@ if ( ! $s_is_purchasable ){ $row_classes[] = 'zymarg-saved-unpurchasable'; }
 		<?php /* Stock warning for saved items */ ?>
 		<?php if ( ! $s_is_in_stock ) : ?>
 			<div class="zymarg-stock-warning zymarg-out-of-stock" role="alert">
-				<i class="ti ti-alert-triangle" aria-hidden="true"></i>
+				<?php echo Zymarg_Cart_Helpers::icon( 'alert-triangle' ); ?>
 				<?php esc_html_e( 'Out of stock', 'zymarg-cart' ); ?>
 			</div>
 		<?php endif; ?>
@@ -150,7 +150,7 @@ if ( ! $s_is_purchasable ){ $row_classes[] = 'zymarg-saved-unpurchasable'; }
 					$s_title
 				) ); ?>"
 			>
-				<i class="ti ti-shopping-cart-plus" aria-hidden="true"></i>
+				<?php echo Zymarg_Cart_Helpers::icon( 'shopping-cart-plus' ); ?>
 				<span><?php echo $move_label; ?></span>
 			</button>
 		<?php endif; ?>
@@ -166,7 +166,7 @@ if ( ! $s_is_purchasable ){ $row_classes[] = 'zymarg-saved-unpurchasable'; }
 					$s_title
 				) ); ?>"
 			>
-				<i class="ti ti-x" aria-hidden="true"></i>
+				<?php echo Zymarg_Cart_Helpers::icon( 'x' ); ?>
 				<span class="zymarg-remove-saved-label"><?php echo $remove_label; ?></span>
 			</button>
 		<?php endif; ?>

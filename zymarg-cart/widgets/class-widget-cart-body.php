@@ -254,10 +254,11 @@ class Zymarg_Widget_Cart_Body extends \Elementor\Widget_Base {
 		$this->add_control( 'mobile_breakpoint', [
 			'label'      => __( 'Mobile Breakpoint (px)', 'zymarg-cart' ),
 			'type'       => \Elementor\Controls_Manager::NUMBER,
-			'default'    => 768,
+			'default'    => 480,
 			'min'        => 320,
 			'max'        => 1200,
 			'separator'  => 'before',
+			'description' => __( 'Width below which the cart switches to its mobile layout. v1.3.0 default is 480px (was 768px). Note: this control sets the data attribute used by JS responsive logic; the CSS @media queries are hard-coded to 480px in zymarg-cart-mobile.css.', 'zymarg-cart' ),
 		] );
 
 		$this->end_controls_section();
@@ -970,6 +971,72 @@ class Zymarg_Widget_Cart_Body extends \Elementor\Widget_Base {
 		] );
 
 		$this->end_controls_section();
+
+		// ─────────────────────────────────────────────────────────────────────
+		// SECTION: Icons (v1.3.0)
+		// ─────────────────────────────────────────────────────────────────────
+		// Per-icon color and responsive-size controls for every icon rendered
+		// by this widget. Icons are inline SVG (rendered via
+		// Zymarg_Cart_Helpers::icon()) so font-size on the wrapper span scales
+		// the SVG via `width: 1em; height: 1em`, and `currentColor` flows
+		// through to the SVG strokes — all controllable from the editor.
+		$this->start_controls_section( 'section_style_icons', [
+			'label' => __( 'Icons', 'zymarg-cart' ),
+			'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+		] );
+
+		$this->add_icon_style_controls( 'icon_save_later',  __( 'Save for Later', 'zymarg-cart' ),    '.zymarg-save-later-btn .zymarg-icon-bookmark', '#9500a5' );
+		$this->add_icon_style_controls( 'icon_coupon_tag',  __( 'Have a Coupon (Tag)', 'zymarg-cart' ),'.zymarg-coupon-toggle .zymarg-icon-tag',       '#9500a5' );
+		$this->add_icon_style_controls( 'icon_coupon_disc', __( 'Applied Coupon Badge', 'zymarg-cart' ),'.zymarg-applied-coupon-badge .zymarg-icon-discount-2', '#9500a5' );
+		$this->add_icon_style_controls( 'icon_stock_warn',  __( 'Stock Warning', 'zymarg-cart' ),    '.zymarg-stock-warning .zymarg-icon-alert-triangle', '#d32f2f' );
+		$this->add_icon_style_controls( 'icon_qty_minus',   __( 'Quantity Minus', 'zymarg-cart' ),   '.zymarg-qty-btn .zymarg-icon-minus',           '#534152' );
+		$this->add_icon_style_controls( 'icon_qty_plus',    __( 'Quantity Plus', 'zymarg-cart' ),    '.zymarg-qty-btn .zymarg-icon-plus',            '#534152' );
+		$this->add_icon_style_controls( 'icon_move_cart',   __( 'Move to Cart', 'zymarg-cart' ),     '.zymarg-icon-shopping-cart-plus',              '#9500a5' );
+		$this->add_icon_style_controls( 'icon_remove_x',    __( 'Remove (X)', 'zymarg-cart' ),       '.zymarg-icon-x',                               '#534152' );
+		$this->add_icon_style_controls( 'icon_price_chg',   __( 'Price Changed', 'zymarg-cart' ),    '.zymarg-icon-trending-up',                     '#d32f2f' );
+		$this->add_icon_style_controls( 'icon_vendor_link', __( 'Vendor Link Arrow', 'zymarg-cart' ), '.zymarg-vendor-arrow',                         '#9500a5' );
+		$this->add_icon_style_controls( 'icon_empty_back',  __( 'Continue Shopping Arrow', 'zymarg-cart' ), '.zymarg-cart-empty .zymarg-icon-arrow-left', '#ffffff' );
+
+		$this->end_controls_section();
+	}
+
+	// =========================================================================
+	// Helper: add color + responsive size controls for a single icon role
+	// =========================================================================
+	//
+	// Used by the v1.3.0 "Icons" style section to expose per-icon styling in
+	// the Elementor editor. Each call adds two controls:
+	//   - {key}_color : color picker bound to `color: VALUE;` on the selector
+	//   - {key}_size  : responsive slider bound to `font-size: VALUE;`
+	//                   (font-size scales the inline SVG because the wrapper
+	//                   span sets the SVG's width/height to 1em)
+	//
+	// @param string $key            Control key prefix (e.g. 'icon_save_later').
+	// @param string $label          Human label shown in the editor.
+	// @param string $selector       CSS selector RELATIVE to {{WRAPPER}}.
+	// @param string $default_color  Initial color value.
+
+	private function add_icon_style_controls( string $key, string $label, string $selector, string $default_color = '#534152' ): void {
+		$this->add_control( $key . '_color', [
+			/* translators: %s: icon role name (e.g. "Save for Later"). */
+			'label'     => sprintf( __( '%s — Color', 'zymarg-cart' ), $label ),
+			'type'      => \Elementor\Controls_Manager::COLOR,
+			'default'   => $default_color,
+			'selectors' => [ '{{WRAPPER}} ' . $selector => 'color: {{VALUE}};' ],
+		] );
+
+		$this->add_responsive_control( $key . '_size', [
+			/* translators: %s: icon role name. */
+			'label'          => sprintf( __( '%s — Size', 'zymarg-cart' ), $label ),
+			'type'           => \Elementor\Controls_Manager::SLIDER,
+			'size_units'     => [ 'px', 'em' ],
+			'range'          => [ 'px' => [ 'min' => 8, 'max' => 32 ] ],
+			'default'        => [ 'size' => 14, 'unit' => 'px' ],
+			'tablet_default' => [ 'size' => 13, 'unit' => 'px' ],
+			'mobile_default' => [ 'size' => 12, 'unit' => 'px' ],
+			'selectors'      => [ '{{WRAPPER}} ' . $selector => 'font-size: {{SIZE}}{{UNIT}};' ],
+			'separator'      => 'after',
+		] );
 	}
 
 	// =========================================================================

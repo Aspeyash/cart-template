@@ -74,7 +74,7 @@ $show_delete_btn = 'yes' === ( $settings['show_delete_btn']  ?? 'yes' );
 	<div class="zymarg-header-left">
 
 		<?php if ( $show_icon ) : ?>
-			<i class="ti ti-shopping-cart zymarg-cart-icon" aria-hidden="true"></i>
+			<?php echo Zymarg_Cart_Helpers::icon( 'shopping-cart', 'zymarg-cart-icon' ); ?>
 		<?php endif; ?>
 
 		<?php if ( $show_title ) : ?>
@@ -106,7 +106,7 @@ $show_delete_btn = 'yes' === ( $settings['show_delete_btn']  ?? 'yes' );
 					data-confirm-text="<?php echo $confirm_text; ?>"
 				<?php endif; ?>
 			>
-				<i class="ti ti-trash zymarg-btn-icon" aria-hidden="true"></i>
+				<?php echo Zymarg_Cart_Helpers::icon( 'trash', 'zymarg-btn-icon' ); ?>
 				<span class="zymarg-btn-label"><?php echo esc_html( $delete_label ); ?></span>
 			</button>
 		<?php endif; ?>
@@ -120,7 +120,7 @@ $show_delete_btn = 'yes' === ( $settings['show_delete_btn']  ?? 'yes' );
 				data-edit-label="<?php echo $edit_label; ?>"
 				data-done-label="<?php echo $done_label; ?>"
 			>
-				<i class="ti ti-edit zymarg-btn-icon" aria-hidden="true"></i>
+				<?php echo Zymarg_Cart_Helpers::icon( 'edit', 'zymarg-btn-icon' ); ?>
 				<span class="zymarg-btn-label"><?php echo esc_html( $edit_label ); ?></span>
 			</button>
 		<?php endif; ?>

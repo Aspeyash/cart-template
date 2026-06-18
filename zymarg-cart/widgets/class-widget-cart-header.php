@@ -807,6 +807,47 @@ class Zymarg_Widget_Cart_Header extends \Elementor\Widget_Base {
 		);
 
 		$this->end_controls_section();
+
+		// ─────────────────────────────────────────────────────────────────────
+		// SECTION: Icons (v1.3.0)
+		// ─────────────────────────────────────────────────────────────────────
+		$this->start_controls_section( 'section_style_icons', [
+			'label' => __( 'Icons', 'zymarg-cart' ),
+			'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+		] );
+
+		$this->add_icon_style_controls( 'icon_cart_header', __( 'Cart Icon', 'zymarg-cart' ),       '.zymarg-cart-icon',                              '#9500a5' );
+		$this->add_icon_style_controls( 'icon_edit',        __( 'Edit Button Icon', 'zymarg-cart' ), '.zymarg-edit-btn .zymarg-icon',                  '#9500a5' );
+		$this->add_icon_style_controls( 'icon_delete',      __( 'Delete Button Icon', 'zymarg-cart' ), '.zymarg-delete-btn .zymarg-icon',              '#d32f2f' );
+
+		$this->end_controls_section();
+	}
+
+	// =========================================================================
+	// Helper: add color + responsive size controls for a single icon role (v1.3.0)
+	// =========================================================================
+
+	private function add_icon_style_controls( string $key, string $label, string $selector, string $default_color = '#534152' ): void {
+		$this->add_control( $key . '_color', [
+			/* translators: %s: icon role name. */
+			'label'     => sprintf( __( '%s — Color', 'zymarg-cart' ), $label ),
+			'type'      => \Elementor\Controls_Manager::COLOR,
+			'default'   => $default_color,
+			'selectors' => [ '{{WRAPPER}} ' . $selector => 'color: {{VALUE}};' ],
+		] );
+
+		$this->add_responsive_control( $key . '_size', [
+			/* translators: %s: icon role name. */
+			'label'          => sprintf( __( '%s — Size', 'zymarg-cart' ), $label ),
+			'type'           => \Elementor\Controls_Manager::SLIDER,
+			'size_units'     => [ 'px', 'em' ],
+			'range'          => [ 'px' => [ 'min' => 8, 'max' => 32 ] ],
+			'default'        => [ 'size' => 16, 'unit' => 'px' ],
+			'tablet_default' => [ 'size' => 15, 'unit' => 'px' ],
+			'mobile_default' => [ 'size' => 14, 'unit' => 'px' ],
+			'selectors'      => [ '{{WRAPPER}} ' . $selector => 'font-size: {{SIZE}}{{UNIT}};' ],
+			'separator'      => 'after',
+		] );
 	}
 
 	// =========================================================================
@@ -841,7 +882,7 @@ class Zymarg_Widget_Cart_Header extends \Elementor\Widget_Base {
 		<div class="zymarg-cart-header">
 			<div class="zymarg-header-left">
 				<# if ( 'yes' === settings.show_cart_icon ) { #>
-					<i class="ti ti-shopping-cart zymarg-cart-icon" aria-hidden="true"></i>
+					<span class="zymarg-icon zymarg-icon-shopping-cart zymarg-cart-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="6" cy="19" r="2"/><circle cx="17" cy="19" r="2"/><path d="M17 17H6V3H4"/><path d="m6 5 14 1-1 7H6"/></svg></span>
 				<# } #>
 				<# if ( 'yes' === settings.show_cart_title ) { #>
 					<span class="zymarg-cart-title">{{{ title }}}</span>

@@ -4,7 +4,7 @@ Tags: woocommerce, cart, multi-vendor, elementor, dokan
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 1.2.1
+Stable tag: 1.3.0
 WC requires at least: 9.0
 WC tested up to: 9.9
 License: GPLv2 or later
@@ -56,6 +56,65 @@ hooks (woocommerce_thankyou, order_status_processing, order_status_completed)
 to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
 
 == Changelog ==
+
+= 1.3.0 =
+* **[Architecture] Inline-SVG icon system replaces the Tabler Icons
+  web-font dependency.** Pre-1.3.0, every icon in the plugin was
+  rendered via `<i class="ti ti-name">` and depended on the Tabler
+  Icons font being enqueued externally — typically by the theme.
+  Whenever the font was missing (the Pantheon dev environment, fresh
+  Astra installs, sites whose theme doesn't bundle Tabler), every
+  icon silently failed to render: the qty stepper +/- buttons looked
+  empty, the save-for-later bookmark icon was invisible, the cart
+  header icon disappeared, etc. v1.3.0 inlines all 17 icon glyphs as
+  SVG via a new `Zymarg_Cart_Helpers::icon( $name, $extra_classes )`
+  helper. Each SVG uses `currentColor` for stroke and is sized via
+  `width: 1em; height: 1em` on the wrapper span, so widget controls
+  targeting `font-size` and `color` work just like they did with the
+  font-icon glyphs. Plugin payload increases by ~5KB; in exchange,
+  every icon now renders unconditionally on every install.
+* **[New] Per-icon Elementor controls for all 17 icons.** A new
+  "Icons" style section is added under each of the three widgets
+  exposing per-icon color and responsive size controls (desktop /
+  tablet / mobile defaults pre-set):
+    - Cart Body widget: Save for Later, Have a Coupon, Applied Coupon
+      Badge, Stock Warning, Quantity Minus, Quantity Plus, Move to
+      Cart, Remove (X), Price Changed, Vendor Link Arrow, Continue
+      Shopping Arrow.
+    - Cart Header widget: Cart Icon, Edit Button, Delete Button.
+    - Cart Total widget: Coupon Remove, Checkout Lock, Checkout Arrow.
+  The Order Summary toggle arrow keeps its existing dedicated
+  controls. 17 icon roles × 2 controls each = 34 new Elementor
+  controls.
+* **[Default change] Mobile breakpoint default 768px → 480px.**
+  The widget setting `mobile_breakpoint` now defaults to 480, and the
+  hardcoded `@media (max-width: NNNpx)` query in
+  `assets/css/zymarg-cart-mobile.css` is also updated to 480. Sites
+  upgrading from 1.2.x will see the mobile cart layout activate only
+  at narrower widths — tablets and large phones in landscape will now
+  see the desktop layout.
+* **[Bug fix] Order Summary bar fully collapses on mobile and
+  tablet.** Same specificity-leak as the v1.1.2 desktop fix, applied
+  to the mobile rule: `.zymarg-breakdown-inner` mobile padding is now
+  scoped to `.zymarg-breakdown-panel.breakdown-open`, so the
+  collapsed-state padding correctly resolves to zero on mobile. The
+  Subtotal sliver between the Order Summary bar and the action bar
+  on mobile is gone.
+* **[Bug fix] Save-for-Later and Have-a-Coupon buttons no longer
+  show theme-imposed hover effects.** Astra and most WP themes apply
+  default `<button>` hover backgrounds, underlines, and box-shadows
+  via higher-specificity selectors than the plugin's own CSS could
+  beat. v1.3.0 explicitly zeroes out `background-color`,
+  `text-decoration`, and `box-shadow` for these two buttons across
+  default / hover / focus / active states with `!important`. The
+  focus outline is preserved so keyboard navigation still has a
+  visible indicator. The "Have a coupon?" link's underline is also
+  removed by the same rule.
+* **[UX] Mobile col-3 row-2 swap — quantity stepper now appears
+  BEFORE the variation switcher on mobile.** Done via CSS `order`
+  inside the mobile media query so the change is mobile-only;
+  desktop layout (where col-variation is a flex column) is
+  untouched.
 
 = 1.2.1 =
 * **[Layout fix] Desktop unit price now sits in its own column.**
@@ -304,6 +363,19 @@ fixes across all three widgets, identified by a full plugin audit.**
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+Major release. (1) The plugin now ships ALL icons as inline SVG —
+removes the implicit Tabler Icons web-font dependency that was
+causing icons to silently fail on environments where the font wasn't
+loaded externally (your Pantheon dev site). (2) The default mobile
+breakpoint changed from 768px to 480px — installs upgrading from
+1.2.x will see the cart's mobile layout activate at narrower
+widths. (3) Per-icon Elementor controls added (color + responsive
+size) for every icon across all three widgets. (4) Bug fixes:
+Order Summary collapse on mobile + tablet, hover effects killed on
+Save-for-Later and Have-a-Coupon buttons, qty stepper + variation
+switcher swap order on mobile. Drop-in upgrade — no data migration.
 
 = 1.2.1 =
 Bug fixes for v1.2.0: desktop unit price now sits in its own column

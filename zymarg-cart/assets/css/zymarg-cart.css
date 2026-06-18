@@ -452,8 +452,55 @@
     transition: color var(--zc-transition-fast);
 }
 
-.zymarg-save-later-btn:hover {
-    color: var(--zc-primary);
+.zymarg-save-later-btn,
+.zymarg-save-later-btn:hover,
+.zymarg-save-later-btn:focus,
+.zymarg-save-later-btn:active,
+.zymarg-coupon-toggle,
+.zymarg-coupon-toggle:hover,
+.zymarg-coupon-toggle:focus,
+.zymarg-coupon-toggle:active {
+    /* v1.3.0 — kill the theme's default button hover effect on these two
+       buttons. The user wants identical styling on default / hover / focus /
+       active states. !important is necessary here because Astra and most
+       themes apply their own hover backgrounds, underlines, and box-shadows
+       to <button> elements via higher-specificity selectors that the plugin
+       cannot beat without the cascade override. The focus outline is left
+       alone so keyboard navigation still has a visible indicator. */
+    background-color: transparent !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+}
+
+/* ─── 4d. Inline-SVG icon system (v1.3.0) ──────────────────────────────────
+   Replaces the previous Tabler icon-font (`<i class="ti ti-X">`). Markup is
+   produced by `Zymarg_Cart_Helpers::icon( $name, $extra_classes )` which
+   returns:
+
+       <span class="zymarg-icon zymarg-icon-{name} {extra}" aria-hidden="true">
+           <svg ...><path ...></svg>
+       </span>
+
+   Each SVG is sized via `width: 1em; height: 1em` so the wrapper span's
+   `font-size` controls the rendered icon size, exactly like an icon-font
+   glyph. Color flows through `currentColor` so existing widget controls
+   targeting parent button color continue to work without modification. */
+
+.zymarg-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    vertical-align: middle;
+    flex-shrink: 0;
+    /* Default size — overridden by widget controls and per-icon mobile rules. */
+    font-size: 1em;
+}
+
+.zymarg-icon svg {
+    width: 1em;
+    height: 1em;
+    display: block;
 }
 
 /* ─── Variation dropdown + Qty stepper ──────────────────────────────────── */

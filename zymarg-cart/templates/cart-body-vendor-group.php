@@ -89,7 +89,7 @@ if ( empty( $items ) ) {
 				>
 					<?php echo $store_name; ?>
 					<?php if ( $show_vendor_arrow ) : ?>
-						<i class="ti ti-chevron-right zymarg-vendor-arrow" aria-hidden="true"></i>
+						<?php echo Zymarg_Cart_Helpers::icon( 'chevron-right', 'zymarg-vendor-arrow' ); ?>
 					<?php endif; ?>
 				</a>
 			<?php else : ?>

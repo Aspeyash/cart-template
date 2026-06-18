@@ -201,7 +201,7 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 		<?php if ( $show_stock && ! empty( $stock_message ) ) : ?>
 			<div class="zymarg-stock-warning <?php echo esc_attr( $stock_class ); ?>"
 				 role="alert">
-				<i class="ti ti-alert-triangle" aria-hidden="true"></i>
+				<?php echo Zymarg_Cart_Helpers::icon( 'alert-triangle' ); ?>
 				<?php echo esc_html( $stock_message ); ?>
 			</div>
 		<?php elseif ( $show_stock ) : ?>
@@ -220,7 +220,7 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 				) ); ?>"
 			>
 				<?php if ( $show_save_icon ) : ?>
-					<i class="ti ti-bookmark" aria-hidden="true"></i>
+					<?php echo Zymarg_Cart_Helpers::icon( 'bookmark' ); ?>
 				<?php endif; ?>
 				<span><?php echo $save_later_label; ?></span>
 			</button>
@@ -287,7 +287,7 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 				<button type="button" class="zymarg-qty-btn zymarg-qty-minus"
 					aria-label="<?php esc_attr_e( 'Decrease quantity', 'zymarg-cart' ); ?>"
 					<?php disabled( $quantity <= 1 ); ?>>
-					<i class="ti ti-minus" aria-hidden="true"></i>
+					<?php echo Zymarg_Cart_Helpers::icon( 'minus' ); ?>
 				</button>
 
 				<span class="zymarg-qty-value"
@@ -299,7 +299,7 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 				<button type="button" class="zymarg-qty-btn zymarg-qty-plus"
 					aria-label="<?php esc_attr_e( 'Increase quantity', 'zymarg-cart' ); ?>"
 					<?php disabled( is_int( $stock_qty ) && $quantity >= $stock_qty ); ?>>
-					<i class="ti ti-plus" aria-hidden="true"></i>
+					<?php echo Zymarg_Cart_Helpers::icon( 'plus' ); ?>
 				</button>
 
 			</div>
@@ -328,7 +328,7 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 				<?php foreach ( $row_coupons as $rc ) : ?>
 					<div class="zymarg-applied-coupon-badge"
 						data-coupon="<?php echo esc_attr( $rc['code'] ); ?>">
-						<i class="ti ti-discount-2" aria-hidden="true"></i>
+						<?php echo Zymarg_Cart_Helpers::icon( 'discount-2' ); ?>
 						<span><?php echo esc_html( $rc['code'] ); ?></span>
 						<span class="zymarg-coupon-disc">
 							&minus; <?php echo wp_kses_post( $rc['discount_html'] ); ?>
@@ -343,7 +343,7 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 				aria-expanded="false"
 				aria-controls="zymarg-coupon-form-<?php echo esc_attr( $key ); ?>"
 			>
-				<i class="ti ti-tag" aria-hidden="true"></i>
+				<?php echo Zymarg_Cart_Helpers::icon( 'tag' ); ?>
 				<span><?php echo $have_coupon_text; ?></span>
 			</button>
 
@@ -394,7 +394,7 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 					) ); ?>"
 				>
 					<?php if ( $show_save_icon ) : ?>
-						<i class="ti ti-bookmark" aria-hidden="true"></i>
+						<?php echo Zymarg_Cart_Helpers::icon( 'bookmark' ); ?>
 					<?php endif; ?>
 					<span><?php echo $save_later_label; ?></span>
 				</button>
@@ -407,7 +407,7 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 					aria-expanded="false"
 					aria-controls="zymarg-coupon-form-<?php echo esc_attr( $key ); ?>"
 				>
-					<i class="ti ti-tag" aria-hidden="true"></i>
+					<?php echo Zymarg_Cart_Helpers::icon( 'tag' ); ?>
 					<span><?php echo $have_coupon_text; ?></span>
 				</button>
 			<?php endif; ?>

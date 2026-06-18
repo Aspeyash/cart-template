@@ -37,7 +37,7 @@ Zymarg_Cart_Partial::show_restore_spinner();
 ?>
 <div class="zymarg-cart-body"
 	data-widget="cart-body"
-	data-mobile-bp="<?php echo esc_attr( (int) ( $settings['mobile_breakpoint'] ?? 768 ) ); ?>">
+	data-mobile-bp="<?php echo esc_attr( (int) ( $settings['mobile_breakpoint'] ?? 480 ) ); ?>">
 
 	<?php if ( $is_empty ) : ?>
 

@@ -161,12 +161,11 @@ if ( $open_default ) {
 				<?php if ( $show_bar_arrow ) : ?>
 					<?php /* Inline SVG chevron — baseline points UP (collapsed state).
 					        CSS rotates 180° when .breakdown-arrow-open is added → points DOWN (expanded).
-					        Inline SVG avoids any external icon-font dependency (v1.1.0). */ ?>
-					<span class="zymarg-breakdown-arrow" aria-hidden="true">
-						<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
-							<path d="M6 15l6 -6l6 6"/>
-						</svg>
-					</span>
+					        v1.3.0: switched from a hand-rolled SVG to Helpers::icon('chevron-up') so
+					        all icons go through the same helper. The .zymarg-breakdown-arrow class
+					        is preserved on the wrapper so existing widget controls (rotation,
+					        color, font-size) keep working. */ ?>
+					<?php echo Zymarg_Cart_Helpers::icon( 'chevron-up', 'zymarg-breakdown-arrow' ); ?>
 				<?php endif; ?>
 				<span class="zymarg-subtotal-bar-label">
 					<?php echo $order_summary_text; ?>
@@ -265,7 +264,7 @@ if ( $open_default ) {
 								__( 'Remove coupon %s', 'zymarg-cart' ),
 								$c['code']
 							) ); ?>">
-							<i class="ti ti-x" aria-hidden="true"></i>
+							<?php echo Zymarg_Cart_Helpers::icon( 'x' ); ?>
 						</button>
 					</div>
 				<?php endforeach; ?>
@@ -331,10 +330,10 @@ if ( $open_default ) {
 				aria-label="<?php echo esc_attr( $checkout_btn_text_raw . ' — ' . wp_strip_all_tags( $grand_html ) ); ?>"
 			>
 				<?php if ( $show_checkout_icon ) : ?>
-					<i class="ti ti-lock zymarg-btn-icon" aria-hidden="true"></i>
+					<?php echo Zymarg_Cart_Helpers::icon( 'lock', 'zymarg-btn-icon' ); ?>
 				<?php endif; ?>
 				<span class="zymarg-btn-label"><?php echo $checkout_btn_text; ?></span>
-				<i class="ti ti-arrow-right zymarg-btn-arrow" aria-hidden="true"></i>
+				<?php echo Zymarg_Cart_Helpers::icon( 'arrow-right', 'zymarg-btn-arrow' ); ?>
 				<span class="zymarg-btn-spinner" aria-hidden="true"></span>
 			</button>
 		<?php endif; ?>
