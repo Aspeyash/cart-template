@@ -114,6 +114,7 @@ if ( empty( $items ) ) {
 			<div class="zymarg-th zymarg-th-cb"></div>
 			<div class="zymarg-th zymarg-th-img"></div>
 			<div class="zymarg-th zymarg-th-title"><?php esc_html_e( 'Product', 'zymarg-cart' ); ?></div>
+			<div class="zymarg-th zymarg-th-price"><?php esc_html_e( 'Price', 'zymarg-cart' ); ?></div>
 			<div class="zymarg-th zymarg-th-variation"><?php esc_html_e( 'Variation / Qty', 'zymarg-cart' ); ?></div>
 			<div class="zymarg-th zymarg-th-subtotal"><?php esc_html_e( 'Subtotal', 'zymarg-cart' ); ?></div>
 			<div class="zymarg-th zymarg-th-coupon"><?php esc_html_e( 'Coupon', 'zymarg-cart' ); ?></div>

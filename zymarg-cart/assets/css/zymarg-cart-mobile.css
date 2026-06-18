@@ -120,16 +120,14 @@
     }
 
     /* Reveal the mobile-only cells / buttons that were hidden on desktop. */
-    .zymarg-col-mobile-price        { display: block;       grid-area: price; }
+    .zymarg-col-price               { grid-area: price; text-align: center; }
     .zymarg-col-mobile-actions      { display: flex;        grid-area: mobile-actions;
                                       justify-content: space-between; align-items: center;
                                       gap: 12px; flex-wrap: wrap; }
-    .zymarg-product-price--mobile   { display: inline-block; }
     .zymarg-save-later-btn--mobile  { display: inline-flex; }
     .zymarg-coupon-toggle--mobile   { display: inline-flex; }
 
     /* Hide the desktop-position counterparts on mobile. */
-    .zymarg-product-price--desktop  { display: none; }
     .zymarg-save-later-btn--desktop { display: none; }
     .zymarg-coupon-toggle--desktop  { display: none; }
 
@@ -143,8 +141,10 @@
         justify-content: flex-start; /* save-only → save left-aligned */
     }
 
-    /* Mobile unit price — sits centred under the image in col 2 row 3. */
-    .zymarg-product-price--mobile {
+    /* Mobile unit price — sits centred under the image in col 2 row 3.
+       v1.2.1: same .zymarg-product-price element as desktop, just placed in
+       a different grid-area and styled smaller / centred for mobile. */
+    .zymarg-col-price .zymarg-product-price {
         font-size: 12px;
         text-align: center;
         margin: 4px 0 0;

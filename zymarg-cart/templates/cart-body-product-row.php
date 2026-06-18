@@ -178,13 +178,6 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 		</div>
 	<?php endif; ?>
 
-	<?php /* ── Mobile-only: Product price under image (v1.2.0) ──────────── */ ?>
-	<?php if ( $show_product_price ) : ?>
-		<div class="zymarg-col zymarg-col-mobile-price" aria-hidden="true">
-			<span class="zymarg-product-price zymarg-product-price--mobile"><?php echo wp_kses_post( $item['unit_price_html'] ?? wc_price( 0 ) ); ?></span>
-		</div>
-	<?php endif; ?>
-
 	<?php /* ── Col 3: Title + SKU + warning + Save for Later ──────────── */ ?>
 	<div class="zymarg-col zymarg-col-title">
 
@@ -192,11 +185,6 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 			href="<?php echo esc_url( $item['product_url'] ?? '#' ); ?>"
 			class="zymarg-product-title"
 		><?php echo esc_html( $item['product_title'] ?? '' ); ?></a>
-
-		<?php /* Desktop-only: Product price under title (Option A — v1.2.0) */ ?>
-		<?php if ( $show_product_price ) : ?>
-			<span class="zymarg-product-price zymarg-product-price--desktop"><?php echo wp_kses_post( $item['unit_price_html'] ?? wc_price( 0 ) ); ?></span>
-		<?php endif; ?>
 
 		<?php if ( $show_sku && ! empty( $item['sku'] ) ) : ?>
 			<span class="zymarg-product-sku">
@@ -240,7 +228,15 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 
 	</div>
 
-	<?php /* ── Col 4: Variation dropdown(s) + Quantity stepper ──────────── */ ?>
+	<?php /* ── Col 4: Product price (v1.2.1 — own column on desktop,
+	             repositioned under image on mobile via grid-area) ─────── */ ?>
+	<?php if ( $show_product_price ) : ?>
+		<div class="zymarg-col zymarg-col-price">
+			<span class="zymarg-product-price"><?php echo wp_kses_post( $item['unit_price_html'] ?? wc_price( 0 ) ); ?></span>
+		</div>
+	<?php endif; ?>
+
+	<?php /* ── Col 5: Variation dropdown(s) + Quantity stepper ──────────── */ ?>
 	<div class="zymarg-col zymarg-col-variation">
 
 		<?php if ( $show_variation && ! empty( $attr_selects ) ) : ?>

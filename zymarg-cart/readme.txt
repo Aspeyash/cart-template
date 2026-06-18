@@ -4,7 +4,7 @@ Tags: woocommerce, cart, multi-vendor, elementor, dokan
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 WC requires at least: 9.0
 WC tested up to: 9.9
 License: GPLv2 or later
@@ -56,6 +56,36 @@ hooks (woocommerce_thankyou, order_status_processing, order_status_completed)
 to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
 
 == Changelog ==
+
+= 1.2.1 =
+* **[Layout fix] Desktop unit price now sits in its own column.**
+  v1.2.0 placed the new Product Price element under the title (Option A,
+  inside `.zymarg-col-title`). v1.2.1 moves it to a dedicated
+  `.zymarg-col-price` column between the title and the variation/qty
+  stepper, which is what was actually wanted. The desktop grid is
+  updated from a 6-column to a 7-column layout:
+    cb | img | title | **price** | variation | subtotal | coupon
+  The two duplicate price elements (`.zymarg-product-price--desktop`
+  inside col-title and `.zymarg-product-price--mobile` inside its own
+  cell) have been consolidated into a single `.zymarg-product-price`
+  inside the new `.zymarg-col-price` cell. CSS Grid's `grid-area: price`
+  positions the same DOM element correctly on both viewports — between
+  title and variation on desktop, under the image on mobile.
+* **[Bug fix] Mobile "Have a coupon?" button now opens the form.**
+  In v1.2.0 the mobile coupon-toggle was a silent no-op. The JS
+  handler in `assets/js/zymarg-cart.js` located the form by walking up
+  the DOM from the clicked button to `.zymarg-col-coupon`, then
+  searching for `.zymarg-coupon-form` inside. That worked for the
+  desktop toggle (which IS inside `.zymarg-col-coupon`) but failed for
+  the new mobile toggle, which lives inside
+  `.zymarg-col-mobile-actions` (a different parent cell). The fix:
+  resolve the form via the `aria-controls` attribute that both
+  toggles already carry, so the form ID is looked up directly via
+  `document.getElementById()` regardless of where in the DOM the
+  toggle button sits. The `aria-expanded` state is now also synced
+  on both the desktop and mobile toggle for the same row, so screen
+  readers report the correct state regardless of which button was
+  pressed.
 
 = 1.2.0 =
 * **[New feature] Product Price element added to every cart row.** A
@@ -274,6 +304,14 @@ fixes across all three widgets, identified by a full plugin audit.**
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.2.1 =
+Bug fixes for v1.2.0: desktop unit price now sits in its own column
+between the title and the variation/qty stepper (was incorrectly
+under the title in v1.2.0). The mobile "Have a coupon?" button now
+actually opens its form (was a silent no-op in v1.2.0 because the
+JS handler didn't know how to find the form from inside the new
+mobile actions row). Drop-in upgrade — no data migration.
 
 = 1.2.0 =
 Cart-body widget redesign + new Product Price element. Adds a new

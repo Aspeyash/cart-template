@@ -226,15 +226,38 @@
         } );
 
         // ── Coupon toggle ("Have a coupon?") ──────────────────────────────────
+        // v1.2.1: locate the form via aria-controls instead of walking up the
+        // DOM. Pre-1.2.1 used $btn.closest('.zymarg-col-coupon').find(...) —
+        // that worked for the desktop toggle (which IS inside .zymarg-col-coupon)
+        // but silently failed for the new mobile toggle, which lives inside
+        // .zymarg-col-mobile-actions, NOT inside .zymarg-col-coupon. The form
+        // never got its open class and the coupon input never appeared on
+        // mobile.
         $( document ).on( 'click', '.zymarg-coupon-toggle', function ( e ) {
             e.preventDefault();
-            var $btn  = $( this );
-            var $col  = $btn.closest( '.zymarg-col-coupon' );
-            var $form = $col.find( '.zymarg-coupon-form' );
-            var open  = $form.hasClass( 'zymarg-coupon-open' );
+            var $btn   = $( this );
+            var formId = $btn.attr( 'aria-controls' );
+            var $form  = formId
+                ? $( document.getElementById( formId ) )
+                : $btn.closest( '.zymarg-col-coupon' ).find( '.zymarg-coupon-form' );
 
+            if ( ! $form.length ) {
+                return;
+            }
+
+            var open = $form.hasClass( 'zymarg-coupon-open' );
             $form.toggleClass( 'zymarg-coupon-open', ! open );
-            $btn.attr( 'aria-expanded', ! open ? 'true' : 'false' );
+
+            // Sync aria-expanded on BOTH the desktop and mobile toggles for
+            // this row so screen readers report the same state regardless of
+            // which one the user activated.
+            var $row = $btn.closest( '.zymarg-product-row' );
+            if ( formId && $row.length ) {
+                $row.find( '.zymarg-coupon-toggle[aria-controls="' + formId + '"]' )
+                    .attr( 'aria-expanded', ! open ? 'true' : 'false' );
+            } else {
+                $btn.attr( 'aria-expanded', ! open ? 'true' : 'false' );
+            }
 
             if ( ! open ) {
                 setTimeout( function () {
