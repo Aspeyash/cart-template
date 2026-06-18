@@ -96,33 +96,76 @@
         display: none;
     }
 
-    /* ── Product row — switch to 3-column stacked card ──────────────────── */
+    /* ── Product row — v1.2.0 mobile redesign (5-row × 3-col grid) ──────────
+       Layout matches the v1.2.0 specification:
+         Col 1 = checkbox (full height)
+         Col 2 = product image (rows 1–2) stacked over unit price (row 3)
+         Col 3 = title/SKU (row 1) → variation+qty (row 2)
+                 → subtotal (row 3) → save+coupon-toggle (row 4)
+                 → coupon-form (row 5, only when expanded)
+       The desktop coupon-toggle and desktop save-for-later inside col-title
+       are hidden; their mobile-only duplicates inside .zymarg-col-mobile-actions
+       are revealed instead so they can be laid out side-by-side via flex. */
 
     .zymarg-product-row {
-        grid-template-columns: 22px 54px 1fr;
+        grid-template-columns: 22px 64px 1fr;
         grid-template-areas:
             "cb    img    title"
-            "cb    img    subtotal"
-            ".     variation variation"
-            ".     coupon    coupon";
-        gap: 6px;
+            "cb    img    variation"
+            "cb    price  subtotal"
+            "cb    .      mobile-actions"
+            "cb    .      coupon";
+        gap: 6px 10px;
         padding: 10px 12px;
     }
 
-    /* Checkbox: vertically centred in its two-row span */
+    /* Reveal the mobile-only cells / buttons that were hidden on desktop. */
+    .zymarg-col-mobile-price        { display: block;       grid-area: price; }
+    .zymarg-col-mobile-actions      { display: flex;        grid-area: mobile-actions;
+                                      justify-content: space-between; align-items: center;
+                                      gap: 12px; flex-wrap: wrap; }
+    .zymarg-product-price--mobile   { display: inline-block; }
+    .zymarg-save-later-btn--mobile  { display: inline-flex; }
+    .zymarg-coupon-toggle--mobile   { display: inline-flex; }
+
+    /* Hide the desktop-position counterparts on mobile. */
+    .zymarg-product-price--desktop  { display: none; }
+    .zymarg-save-later-btn--desktop { display: none; }
+    .zymarg-coupon-toggle--desktop  { display: none; }
+
+    /* Equal-spaced buttons — when only one is shown (e.g. SfL disabled in
+       widget settings), the lone button is left-aligned because flex-direction
+       row + justify-content space-between collapses to a single left position. */
+    .zymarg-col-mobile-actions[data-has-save="0"] {
+        justify-content: flex-start; /* coupon-only → coupon left-aligned */
+    }
+    .zymarg-col-mobile-actions[data-has-coupon="0"] {
+        justify-content: flex-start; /* save-only → save left-aligned */
+    }
+
+    /* Mobile unit price — sits centred under the image in col 2 row 3. */
+    .zymarg-product-price--mobile {
+        font-size: 12px;
+        text-align: center;
+        margin: 4px 0 0;
+        font-weight: 600;
+        color: var(--zc-primary);
+    }
+
+    /* Checkbox: vertically centred across all 5 rows. */
     .zymarg-col-cb {
         align-self: center;
         padding-top: 2px;
     }
 
-    /* Image: vertically centred in its two-row span */
+    /* Image: anchored at the top of its 2-row span. */
     .zymarg-col-img {
         align-self: start;
     }
 
     .zymarg-product-img-wrap {
-        width: 54px;
-        height: 54px;
+        width: 60px;
+        height: 60px;
         border-radius: 8px;
     }
 
@@ -141,22 +184,19 @@
         font-size: 10px;
     }
 
-    /* Subtotal column: left-aligned on mobile, shows beneath title */
+    /* Subtotal column: left-aligned on mobile, shows in row 3 col 3 */
     .zymarg-col-subtotal {
         text-align: left;
         align-self: center;
     }
 
     .zymarg-subtotal-amount {
-        font-size: 12px;
+        font-size: 13px;
         color: var(--zc-primary);  /* more prominent on mobile */
+        font-weight: 600;
     }
 
-    .zymarg-unit-price {
-        font-size: 10px;
-    }
-
-    /* Variation column: spans cols 2–3 under the image */
+    /* Variation+qty: row 2 col 3, side by side */
     .zymarg-col-variation {
         display: flex;
         flex-direction: row;
@@ -187,14 +227,25 @@
         font-size: 13px;
     }
 
-    /* Coupon column: spans cols 2–3, hidden behind "Have a coupon?" */
+    /* Coupon column: row 5 col 3 — only visible when the form is expanded.
+       The toggle button inside col-coupon is the desktop one (hidden on mobile);
+       the mobile toggle lives inside .zymarg-col-mobile-actions. The form,
+       however, stays inside col-coupon, so col-coupon must occupy the
+       'coupon' grid area for the form to expand directly under the actions
+       row when toggled. */
     .zymarg-col-coupon {
+        grid-area: coupon;
         gap: 4px;
     }
 
-    .zymarg-coupon-toggle {
+    /* Hide any remaining desktop coupon-toggle leftover spacing. */
+    .zymarg-col-coupon .zymarg-coupon-toggle--desktop {
+        display: none;
+    }
+
+    .zymarg-coupon-toggle--mobile {
         font-size: 11px;
-        min-height: 28px;       /* comfortable tap target */
+        min-height: 28px;
         align-items: center;
     }
 
@@ -210,8 +261,8 @@
         justify-content: center;
     }
 
-    /* Save for Later: slightly larger tap target */
-    .zymarg-save-later-btn {
+    /* Save for Later (mobile button inside actions row) — comfortable tap target */
+    .zymarg-save-later-btn--mobile {
         min-height: 28px;
         align-items: center;
         font-size: 11px;

@@ -323,6 +323,34 @@
 .zymarg-col-subtotal  { grid-area: subtotal;  text-align: right; }
 .zymarg-col-coupon    { grid-area: coupon; }
 
+/* Mobile-only cells are placed in DOM at all times so the JS event delegation
+   works uniformly. They are hidden on desktop and only become visible inside
+   the mobile breakpoint media query in zymarg-cart-mobile.css (v1.2.0). */
+.zymarg-col-mobile-price,
+.zymarg-col-mobile-actions,
+.zymarg-product-price--mobile,
+.zymarg-save-later-btn--mobile,
+.zymarg-coupon-toggle--mobile {
+    display: none;
+}
+
+/* Product price under the title (desktop placement — Option A, v1.2.0).
+   Same `.zymarg-product-price` class is used for the mobile-under-image
+   instance, so widget controls in class-widget-cart-total.php style both
+   simultaneously. The desktop modifier class allows overrides where needed. */
+.zymarg-product-price {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--zc-primary);
+    line-height: 1.3;
+    margin: 2px 0 4px;
+}
+
+.zymarg-product-price--desktop {
+    display: inline-block;
+}
+
 /* ─── Product image ─────────────────────────────────────────────────────── */
 
 .zymarg-product-img-link {

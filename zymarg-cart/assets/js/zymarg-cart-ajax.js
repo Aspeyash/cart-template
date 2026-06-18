@@ -135,25 +135,32 @@
     }
 
     /**
-     * Updates the unit-price span in a product row.
+     * Updates the unit-price element(s) in a product row.
+     *
+     * v1.2.0: targets `.zymarg-product-price` (used by both the desktop
+     * placement under the title and the mobile placement under the image).
+     * Pre-1.2.0 targeted `.zymarg-unit-price-value` which was the small
+     * "× qty" breakdown line that has been removed.
      *
      * @param {string} cartKey WC cart item key.
      * @param {string} html    Formatted price HTML.
      */
     function updateRowUnitPrice( cartKey, html ) {
-        // Target only the price-value span, not the whole .zymarg-unit-price div.
-        // Replacing the whole div wipes the × qty breakdown spans that follow it.
-        $( '[data-cart-key="' + cartKey + '"] .zymarg-unit-price-value' ).html( html );
+        $( '[data-cart-key="' + cartKey + '"] .zymarg-product-price' ).html( html );
     }
 
     /**
      * Updates the × qty part of the unit-price breakdown in a product row.
      *
-     * @param {string} cartKey WC cart item key.
-     * @param {number} qty     New quantity to display.
+     * v1.2.0 NO-OP — the "× qty" breakdown line was removed in v1.2.0.
+     * Function kept as a no-op so existing callers (changeVariation,
+     * updateQuantity) continue to work without further refactoring.
+     *
+     * @param {string} cartKey WC cart item key (unused).
+     * @param {number} qty     Quantity (unused).
      */
     function updateRowUnitPriceQty( cartKey, qty ) {
-        $( '[data-cart-key="' + cartKey + '"] .zymarg-unit-price-qty' ).text( qty );
+        // no-op (× qty line removed in v1.2.0).
     }
 
     /**

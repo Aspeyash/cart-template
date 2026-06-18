@@ -41,7 +41,7 @@ $show_sku          = 'yes' === ( $settings['show_product_sku']        ?? 'yes' )
 $show_stock        = 'yes' === ( $settings['show_stock_warning']      ?? 'yes' );
 $show_variation    = 'yes' === ( $settings['show_variation_dropdown'] ?? 'yes' );
 $show_qty          = 'yes' === ( $settings['show_qty_stepper']        ?? 'yes' );
-$show_unit_price   = 'yes' === ( $settings['show_unit_price']         ?? 'yes' );
+$show_product_price = 'yes' === ( $settings['show_product_price']     ?? 'yes' ); // v1.2.0 — was show_unit_price (× qty line removed).
 $show_coupon       = 'yes' === ( $settings['show_coupon_field']       ?? 'yes' );
 $save_later_on     = 'yes' === ( $settings['save_later_enabled']      ?? 'yes' );
 $show_save_later   = $save_later_on && 'yes' === ( $settings['show_save_later_btn'] ?? 'yes' );
@@ -178,6 +178,13 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 		</div>
 	<?php endif; ?>
 
+	<?php /* ── Mobile-only: Product price under image (v1.2.0) ──────────── */ ?>
+	<?php if ( $show_product_price ) : ?>
+		<div class="zymarg-col zymarg-col-mobile-price" aria-hidden="true">
+			<span class="zymarg-product-price zymarg-product-price--mobile"><?php echo wp_kses_post( $item['unit_price_html'] ?? wc_price( 0 ) ); ?></span>
+		</div>
+	<?php endif; ?>
+
 	<?php /* ── Col 3: Title + SKU + warning + Save for Later ──────────── */ ?>
 	<div class="zymarg-col zymarg-col-title">
 
@@ -185,6 +192,11 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 			href="<?php echo esc_url( $item['product_url'] ?? '#' ); ?>"
 			class="zymarg-product-title"
 		><?php echo esc_html( $item['product_title'] ?? '' ); ?></a>
+
+		<?php /* Desktop-only: Product price under title (Option A — v1.2.0) */ ?>
+		<?php if ( $show_product_price ) : ?>
+			<span class="zymarg-product-price zymarg-product-price--desktop"><?php echo wp_kses_post( $item['unit_price_html'] ?? wc_price( 0 ) ); ?></span>
+		<?php endif; ?>
 
 		<?php if ( $show_sku && ! empty( $item['sku'] ) ) : ?>
 			<span class="zymarg-product-sku">
@@ -211,7 +223,7 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 		<?php if ( $show_save_later ) : ?>
 			<button
 				type="button"
-				class="zymarg-save-later-btn"
+				class="zymarg-save-later-btn zymarg-save-later-btn--desktop"
 				data-cart-key="<?php echo esc_attr( $key ); ?>"
 				aria-label="<?php echo esc_attr( sprintf(
 					/* translators: %s: Product title. */
@@ -306,13 +318,9 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 			<?php echo wp_kses_post( $item['subtotal_html'] ?? wc_price( 0 ) ); ?>
 		</div>
 
-		<?php if ( $show_unit_price ) : ?>
-			<div class="zymarg-unit-price">
-				<span class="zymarg-unit-price-value"><?php echo wp_kses_post( $item['unit_price_html'] ?? '' ); ?></span>
-				<span class="zymarg-unit-price-x" aria-hidden="true"> &times; </span>
-				<span class="zymarg-unit-price-qty"><?php echo esc_html( (string) $quantity ); ?></span>
-			</div>
-		<?php endif; ?>
+		<?php /* v1.2.0 — removed the "unit price × qty" breakdown line.
+		           The unit price is now shown separately under the title (desktop)
+		           and under the image (mobile). */ ?>
 
 	</div>
 
@@ -335,7 +343,7 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 
 			<button
 				type="button"
-				class="zymarg-coupon-toggle"
+				class="zymarg-coupon-toggle zymarg-coupon-toggle--desktop"
 				aria-expanded="false"
 				aria-controls="zymarg-coupon-form-<?php echo esc_attr( $key ); ?>"
 			>
@@ -368,6 +376,45 @@ if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
 			</div>
 
 			<div class="zymarg-coupon-feedback" aria-live="polite" role="status"></div>
+
+		</div>
+	<?php endif; ?>
+
+	<?php /* ── Mobile-only: actions row at the bottom of col 3 (v1.2.0)  ── */ ?>
+	<?php if ( $show_save_later || $show_coupon ) : ?>
+		<div class="zymarg-col zymarg-col-mobile-actions"
+			data-has-save="<?php echo $show_save_later ? '1' : '0'; ?>"
+			data-has-coupon="<?php echo $show_coupon ? '1' : '0'; ?>">
+
+			<?php if ( $show_save_later ) : ?>
+				<button
+					type="button"
+					class="zymarg-save-later-btn zymarg-save-later-btn--mobile"
+					data-cart-key="<?php echo esc_attr( $key ); ?>"
+					aria-label="<?php echo esc_attr( sprintf(
+						/* translators: %s: Product title. */
+						__( 'Save %s for later', 'zymarg-cart' ),
+						$item['product_title'] ?? ''
+					) ); ?>"
+				>
+					<?php if ( $show_save_icon ) : ?>
+						<i class="ti ti-bookmark" aria-hidden="true"></i>
+					<?php endif; ?>
+					<span><?php echo $save_later_label; ?></span>
+				</button>
+			<?php endif; ?>
+
+			<?php if ( $show_coupon ) : ?>
+				<button
+					type="button"
+					class="zymarg-coupon-toggle zymarg-coupon-toggle--mobile"
+					aria-expanded="false"
+					aria-controls="zymarg-coupon-form-<?php echo esc_attr( $key ); ?>"
+				>
+					<i class="ti ti-tag" aria-hidden="true"></i>
+					<span><?php echo $have_coupon_text; ?></span>
+				</button>
+			<?php endif; ?>
 
 		</div>
 	<?php endif; ?>

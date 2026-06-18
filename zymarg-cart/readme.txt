@@ -4,7 +4,7 @@ Tags: woocommerce, cart, multi-vendor, elementor, dokan
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 1.1.4
+Stable tag: 1.2.0
 WC requires at least: 9.0
 WC tested up to: 9.9
 License: GPLv2 or later
@@ -56,6 +56,46 @@ hooks (woocommerce_thankyou, order_status_processing, order_status_completed)
 to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
 
 == Changelog ==
+
+= 1.2.0 =
+* **[New feature] Product Price element added to every cart row.** A
+  prominent unit-price display now appears under the product title on
+  desktop and under the product image on mobile. For variable
+  products, the price updates live when the customer changes the
+  variation dropdown. Sale prices are reflected automatically — when
+  a product is on sale, the displayed value is the sale price (the
+  regular price is not struck through, per the explicit project
+  decision; only the active price is shown).
+* **[Layout] Mobile cart-body redesign — 3 column × 5 row grid.**
+  Replaces the previous mobile layout with:
+    Col 1: checkbox (full height)
+    Col 2: product image (rows 1–2) stacked over unit price (row 3)
+    Col 3 row 1: title + SKU
+    Col 3 row 2: variation switcher inline with quantity stepper
+    Col 3 row 3: line subtotal
+    Col 3 row 4: Save-for-later inline with Have-a-coupon, equal-spaced
+    Col 3 row 5: coupon form (only visible when expanded)
+  When Save-for-later is disabled in widget settings, the Have-a-coupon
+  button left-aligns automatically. Respects the existing
+  `mobile_breakpoint` widget setting (default 768px).
+* **[Removed] The "× qty" breakdown line under the desktop subtotal**
+  (the small `18₺ × 1` line) has been removed. Its information is now
+  carried by the new Product Price element under the title plus the
+  always-visible quantity stepper. The old `show_unit_price` toggle
+  and `unit_price_color` Elementor control are kept as silent no-ops
+  for backwards compatibility with existing saved page settings — they
+  no longer affect anything but won't cause editor errors.
+* **[New widget controls] Product Price section** added under the
+  cart-body widget Style tab with:
+    - Show Product Price toggle (default: yes)
+    - Color (default: ZYMARG primary `#9500a5`)
+    - Typography (font size, weight — responsive)
+    - Margin (responsive — desktop / tablet / mobile)
+* **[JS] `updateRowUnitPrice()`** in `assets/js/zymarg-cart-ajax.js`
+  now targets `.zymarg-product-price` so both the desktop and the
+  mobile price displays stay in sync when a variation changes.
+  `updateRowUnitPriceQty()` becomes a documented no-op for the same
+  reason and is kept only to preserve call-site compatibility.
 
 = 1.1.4 =
 * **[Critical] Cash-on-Delivery (and other instant-status gateways) no
@@ -234,6 +274,15 @@ fixes across all three widgets, identified by a full plugin audit.**
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Cart-body widget redesign + new Product Price element. Adds a new
+prominent unit-price display under the product title (desktop) and
+under the product image (mobile). Mobile layout reorganised into a
+3-column / 5-row grid for better readability and tap targets. The
+old "× qty" breakdown line under the subtotal is removed (replaced
+by the new Product Price). Drop-in upgrade — no data migration,
+existing widget configurations remain compatible.
 
 = 1.1.4 =
 Critical fix for partial checkout with Cash-on-Delivery and other

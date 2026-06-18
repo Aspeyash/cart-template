@@ -146,7 +146,7 @@ class Zymarg_Widget_Cart_Body extends \Elementor\Widget_Base {
 			'show_stock_warning'     => __( 'Stock Warning', 'zymarg-cart' ),
 			'show_variation_dropdown'=> __( 'Variation Dropdown', 'zymarg-cart' ),
 			'show_qty_stepper'       => __( 'Quantity Stepper', 'zymarg-cart' ),
-			'show_unit_price'        => __( 'Unit Price Breakdown', 'zymarg-cart' ),
+			'show_product_price'     => __( 'Product Price', 'zymarg-cart' ),
 			'show_coupon_field'      => __( 'Coupon Field', 'zymarg-cart' ),
 			'show_table_headers'     => __( 'Table Column Headers', 'zymarg-cart' ),
 		] as $key => $label ) {
@@ -531,8 +531,52 @@ class Zymarg_Widget_Cart_Body extends \Elementor\Widget_Base {
 			'label'     => __( 'Unit Price Color', 'zymarg-cart' ),
 			'type'      => \Elementor\Controls_Manager::COLOR,
 			'default'   => '#857183',
+			/* v1.2.0: was bound to .zymarg-unit-price (the old "× qty"
+			   breakdown line that was removed in the v1.2.0 redesign).
+			   Kept here so existing saved page settings don't error in
+			   the editor — but it now targets nothing (silent no-op).
+			   The new Product Price section below replaces it. */
 			'selectors' => [ '{{WRAPPER}} .zymarg-unit-price' => 'color: {{VALUE}};' ],
 			'condition' => [ 'show_unit_price' => 'yes' ],
+		] );
+
+		$this->end_controls_section();
+
+		// ── Section: Product Price (v1.2.0) ───────────────────────────────────
+		// Styles the new unit-price element shown under the title (desktop)
+		// and under the image (mobile). Both share the .zymarg-product-price
+		// class so a single set of controls applies to both.
+		$this->start_controls_section( 'section_style_product_price', [
+			'label'     => __( 'Product Price', 'zymarg-cart' ),
+			'tab'       => \Elementor\Controls_Manager::TAB_STYLE,
+			'condition' => [ 'show_product_price' => 'yes' ],
+		] );
+
+		$this->add_control( 'product_price_color', [
+			'label'     => __( 'Color', 'zymarg-cart' ),
+			'type'      => \Elementor\Controls_Manager::COLOR,
+			'default'   => '#9500a5', // ZYMARG primary.
+			'selectors' => [ '{{WRAPPER}} .zymarg-product-price' => 'color: {{VALUE}};' ],
+		] );
+
+		$this->add_group_control( \Elementor\Group_Control_Typography::get_type(), [
+			'name'     => 'product_price_typography',
+			'selector' => '{{WRAPPER}} .zymarg-product-price',
+			'fields_options' => [
+				'typography'  => [ 'default' => 'yes' ],
+				'font_size'   => [ 'default' => [ 'size' => 14, 'unit' => 'px' ] ],
+				'font_weight' => [ 'default' => '600' ],
+			],
+		] );
+
+		$this->add_responsive_control( 'product_price_margin', [
+			'label'          => __( 'Margin', 'zymarg-cart' ),
+			'type'           => \Elementor\Controls_Manager::DIMENSIONS,
+			'size_units'     => [ 'px', 'em' ],
+			'default'        => [ 'top' => '2', 'right' => '0', 'bottom' => '4', 'left' => '0', 'unit' => 'px', 'isLinked' => false ],
+			'tablet_default' => [ 'top' => '2', 'right' => '0', 'bottom' => '4', 'left' => '0', 'unit' => 'px' ],
+			'mobile_default' => [ 'top' => '4', 'right' => '0', 'bottom' => '0', 'left' => '0', 'unit' => 'px' ],
+			'selectors'      => [ '{{WRAPPER}} .zymarg-product-price' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ],
 		] );
 
 		$this->end_controls_section();
