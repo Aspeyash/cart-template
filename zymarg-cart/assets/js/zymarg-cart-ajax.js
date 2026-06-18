@@ -37,8 +37,14 @@
     // =========================================================================
 
     var _nonce       = cfg.nonce  || '';
-    var _qtyTimer    = null;
     var _totalsTimer = null;
+
+    // Per-row debounce timer for quantity updates (v1.1.3). Pre-1.1.3 this was
+    // a single module-level timer shared by every product row, which meant
+    // clicking +/- on Row B within 400 ms after Row A would silently cancel
+    // Row A's pending AJAX and discard the change. Storing the timer on the
+    // row's jQuery data() namespace gives each row its own debouncer.
+    var QTY_TIMER_KEY = 'zymarg-qty-timer';
 
     /** Delay before firing a quantity update (ms). */
     var QTY_DEBOUNCE = 400;
@@ -195,7 +201,11 @@
         $( '.zymarg-action-grand-total' ).html( totals.grand_total_html || '' );
 
         // Selection count label: "2 of 4 selected".
-        var total    = $( '.zymarg-product-row' ).length;
+        // Exclude rows that are mid-fadeout (have .zymarg-removing) so the
+        // total reflects what will be visible after animations complete —
+        // avoids a brief "0 of 5 selected" → "0 of 4 selected" flicker
+        // immediately after a delete (v1.1.3).
+        var total    = $( '.zymarg-product-row:not(.zymarg-removing)' ).length;
         var selected = totals.selected_count || 0;
         var label    = ( cfg.i18n.selectedOf || '%1$d of %2$d selected' )
             .replace( '%1$d', selected )
@@ -377,9 +387,20 @@
             .replace( /"/g,  '&quot;' );
     }
 
-    /** Escapes a string for safe use in an HTML attribute value. */
+    /**
+     * Escapes a string for safe use in an HTML attribute value.
+     *
+     * v1.1.3: pre-1.1.3 only escaped single-quote on top of escHtml's basic set,
+     * leaving some attribute-context edge cases under-escaped. Now performs the
+     * full set used by every modern templating library.
+     */
     function escAttr( str ) {
-        return escHtml( str ).replace( /'/g, '&#39;' );
+        return String( str || '' )
+            .replace( /&/g,  '&amp;'  )
+            .replace( /"/g,  '&quot;' )
+            .replace( /'/g,  '&#39;'  )
+            .replace( /</g,  '&lt;'   )
+            .replace( />/g,  '&gt;'   );
     }
 
     /**
@@ -425,9 +446,17 @@
          * @param {Array}  selected   Currently selected cart item keys.
          */
         updateQuantity : function ( $stepper, cartKey, qty, selected ) {
-            clearTimeout( _qtyTimer );
             var $row = $stepper.closest( '.zymarg-product-row' );
-            _qtyTimer = setTimeout( function () {
+
+            // Cancel any prior pending update for THIS row only — other rows
+            // each have their own timer and are unaffected (v1.1.3).
+            var existingTimer = $row.data( QTY_TIMER_KEY );
+            if ( existingTimer ) {
+                clearTimeout( existingTimer );
+            }
+
+            var newTimer = setTimeout( function () {
+                $row.removeData( QTY_TIMER_KEY );
                 setLoading( $row, true );
                 request( 'zymarg_update_quantity', {
                     cart_item_key : cartKey,
@@ -448,10 +477,14 @@
                     }
                 } ).fail( function () {
                     showError( cfg.i18n.error );
+                    // Revert stepper on network failure too (v1.1.3).
+                    $row.find( '.zymarg-qty-value' ).text( $row.data( 'qty' ) || qty );
                 } ).always( function () {
                     setLoading( $row, false );
                 } );
             }, QTY_DEBOUNCE );
+
+            $row.data( QTY_TIMER_KEY, newTimer );
         },
 
         // ── Variation ─────────────────────────────────────────────────────────
@@ -467,7 +500,22 @@
          */
         changeVariation : function ( $select, cartKey, variationId, attributes, selected ) {
             var $row = $select.closest( '.zymarg-product-row' );
-            $select.data( 'prev-val', $select.val() ); // store for rollback
+
+            // Snapshot the old cart-key so we can repair _selectedKeys if the
+            // cart-key changes (v1.1.3 — fix for selectedKeys-during-flight race).
+            var oldKey = cartKey;
+
+            // Optimistically remove the old key from the global selected-keys
+            // array immediately. If the user fires another action (e.g. qty
+            // stepper) while this variation request is in flight, that other
+            // action would otherwise send the now-stale old cart-key in its
+            // selected_keys payload and the server would fail to find it.
+            // The new key is added back when this request succeeds.
+            if ( window.ZymargCart && Array.isArray( selected ) && selected.indexOf( oldKey ) !== -1 ) {
+                var pruned = selected.filter( function ( k ) { return k !== oldKey; } );
+                ZymargCart.updateSelectedKeys( pruned );
+            }
+
             setLoading( $row, true );
 
             request( 'zymarg_change_variation', {
@@ -503,13 +551,25 @@
                     // and silently aborts, leaving the old price on screen.
                     $row.removeData( 'variations' );
 
-                    // Update prev-val to the newly committed selection so any
-                    // rollback on a future failed request uses the correct value.
-                    $select.data( 'prev-val', $select.val() );
+                    // Update prev-val attribute (NOT jQuery .data()) to the
+                    // newly committed selection so any rollback on a future
+                    // failed request uses the correct value (v1.1.3 — pre-1.1.3
+                    // this overwrote prev-val with the NEW value BEFORE the
+                    // AJAX call, making rollback a no-op).
+                    $select.attr( 'data-prev-val', $select.val() );
 
-                    // Sync selected keys in case the cart key changed.
+                    // Sync selected keys with the server's authoritative list.
+                    // If the server returned an updated set, use that. Otherwise
+                    // re-add the new cart-key (we pruned the old one optimistically
+                    // before sending the request).
                     if ( d.updated_selected_keys && window.ZymargCart ) {
                         ZymargCart.updateSelectedKeys( d.updated_selected_keys );
+                    } else if ( window.ZymargCart && d.new_cart_key && Array.isArray( selected ) && selected.indexOf( oldKey ) !== -1 ) {
+                        var current = ZymargCart.getSelectedKeys();
+                        if ( current.indexOf( d.new_cart_key ) === -1 ) {
+                            current.push( d.new_cart_key );
+                            ZymargCart.updateSelectedKeys( current );
+                        }
                     }
 
                     if ( d.merged ) {
@@ -568,11 +628,25 @@
                     emit( 'zymarg:variationChanged', d );
                 } else {
                     showError( res.message || cfg.i18n.error );
-                    $select.val( $select.data( 'prev-val' ) );
+                    // Roll back: read the previous value from the HTML attribute
+                    // (which the template seeded and we update only on success).
+                    // Pre-1.1.3 read from $select.data('prev-val'), which was
+                    // overwritten with the NEW value before the request fired,
+                    // so rollback was a silent no-op.
+                    $select.val( $select.attr( 'data-prev-val' ) );
+                    // Restore the original selected-keys (we pruned oldKey
+                    // optimistically before the request).
+                    if ( window.ZymargCart && Array.isArray( selected ) ) {
+                        ZymargCart.updateSelectedKeys( selected );
+                    }
                 }
             } ).fail( function () {
                 showError( cfg.i18n.error );
-                $select.val( $select.data( 'prev-val' ) );
+                $select.val( $select.attr( 'data-prev-val' ) );
+                // Restore the original selected-keys on network failure too.
+                if ( window.ZymargCart && Array.isArray( selected ) ) {
+                    ZymargCart.updateSelectedKeys( selected );
+                }
             } ).always( function () {
                 setLoading( $row, false );
             } );
@@ -583,13 +657,20 @@
         /**
          * Removes a cart item via the delete button in edit mode.
          *
-         * @param {jQuery} $row      The product row element.
-         * @param {string} cartKey   WC cart item key.
-         * @param {Array}  selected  Currently selected cart item keys.
+         * Returns the underlying jQuery deferred so callers (notably the
+         * edit-mode bulk-delete loop) can await each request before firing the
+         * next one — this prevents the race condition where two parallel
+         * remove requests both report `vendor_empty: false` because each one
+         * read the cart before the other had committed (v1.1.3).
+         *
+         * @param  {jQuery} $row      The product row element.
+         * @param  {string} cartKey   WC cart item key.
+         * @param  {Array}  selected  Currently selected cart item keys.
+         * @return {jQuery.jqXHR}     The AJAX deferred.
          */
         removeItem : function ( $row, cartKey, selected ) {
             setLoading( $row, true );
-            request( 'zymarg_remove_item', {
+            return request( 'zymarg_remove_item', {
                 cart_item_key : cartKey,
                 selected_keys : JSON.stringify( selected || [] ),
             } ).done( function ( res ) {
@@ -599,6 +680,16 @@
                         if ( d.vendor_empty ) {
                             $( '.zymarg-vendor-block[data-vendor-id="' + d.vendor_id + '"]' )
                                 .fadeOut( 260, function () { $( this ).remove(); } );
+                        } else {
+                            // Defensive belt-and-suspenders (v1.1.3): even if the
+                            // server reports the vendor still has items, double-
+                            // check the DOM. This protects against any future
+                            // race where the response's vendor_empty flag was
+                            // computed from a stale read.
+                            var $vBlock = $( '.zymarg-vendor-block[data-vendor-id="' + d.vendor_id + '"]' );
+                            if ( $vBlock.length && $vBlock.find( '.zymarg-product-row' ).length === 0 ) {
+                                $vBlock.fadeOut( 260, function () { $( this ).remove(); } );
+                            }
                         }
                         applyTotals( d.totals );
                         updateItemCount( d.item_count );
@@ -668,6 +759,10 @@
                 } else {
                     showError( res.message || cfg.i18n.error );
                 }
+            } ).fail( function () {
+                // v1.1.3: pre-1.1.3 silently ignored network failures here,
+                // leaving the user uncertain whether the coupon was removed.
+                showError( cfg.i18n.error || 'Error' );
             } );
         },
 
@@ -756,6 +851,14 @@
                 selected_keys : JSON.stringify( selected || [] ),
             } ).done( function ( res ) {
                 if ( res.success ) {
+                    // v1.1.3: preserve scroll position across the reload so the
+                    // user does not lose their place on a long cart page. The
+                    // saved value is consumed by the page-load handler in
+                    // zymarg-cart.js. Full AJAX-based DOM injection is planned
+                    // for v1.2.0 — see Issue #7 in the v1.1.3 audit.
+                    try {
+                        sessionStorage.setItem( 'zymargCartScrollY', String( window.scrollY || window.pageYOffset || 0 ) );
+                    } catch ( err ) { /* sessionStorage may be blocked */ }
                     window.location.reload();
                 } else {
                     setLoading( $savedRow, false );
@@ -809,6 +912,10 @@
                     if ( res.success ) {
                         applyTotals( res.data.totals );
                     }
+                } ).fail( function () {
+                    // v1.1.3: pre-1.1.3 silently ignored network failures here,
+                    // leaving stale totals on screen with no user feedback.
+                    showError( cfg.i18n.error || 'Error' );
                 } );
             }, TOTALS_DEBOUNCE );
         },

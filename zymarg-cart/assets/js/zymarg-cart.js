@@ -418,13 +418,41 @@
 
     window.addEventListener( 'pageshow', function ( event ) {
         if ( event.persisted ) {
-            // Page was restored from bfcache — reset any stuck checkout button.
+            // Page was restored from bfcache — reset any stuck loading states.
+            // v1.1.3: pre-1.1.3 only reset the checkout button. Now we also
+            // clear any qty/variation/coupon/save-for-later loading classes
+            // that could have been frozen mid-AJAX when the user navigated
+            // away.
             var $btn = $( '.zymarg-checkout-btn' );
             if ( $btn.hasClass( 'zymarg-btn-loading' ) || $btn.prop( 'disabled' ) ) {
                 $btn.removeClass( 'zymarg-btn-loading' ).prop( 'disabled', false );
                 log( 'bfcache restore detected — checkout button re-enabled.' );
             }
+            $( '.zymarg-loading' ).removeClass( 'zymarg-loading' );
+            $( '.zymarg-btn-loading' ).removeClass( 'zymarg-btn-loading' ).prop( 'disabled', false );
         }
+    } );
+
+    // =========================================================================
+    // Scroll restoration after move-to-cart reload (v1.1.3)
+    // =========================================================================
+    //
+    // moveToCart() in zymarg-cart-ajax.js stashes window.scrollY into
+    // sessionStorage just before triggering window.location.reload(). On the
+    // next load we read it back and scroll the user to where they were so a
+    // long cart page does not feel like it lost their place.
+
+    $( function () {
+        try {
+            var saved = sessionStorage.getItem( 'zymargCartScrollY' );
+            if ( saved !== null ) {
+                sessionStorage.removeItem( 'zymargCartScrollY' );
+                var y = parseInt( saved, 10 );
+                if ( ! isNaN( y ) && y > 0 ) {
+                    window.scrollTo( 0, y );
+                }
+            }
+        } catch ( err ) { /* sessionStorage may be blocked */ }
     } );
 
     // =========================================================================

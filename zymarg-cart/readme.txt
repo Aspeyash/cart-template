@@ -4,7 +4,7 @@ Tags: woocommerce, cart, multi-vendor, elementor, dokan
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 WC requires at least: 9.0
 WC tested up to: 9.9
 License: GPLv2 or later
@@ -56,6 +56,71 @@ hooks (woocommerce_thankyou, order_status_processing, order_status_completed)
 to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
 
 == Changelog ==
+
+= 1.1.3 =
+**Comprehensive cart-stability release: 13 race-condition / correctness / UX
+fixes across all three widgets, identified by a full plugin audit.**
+
+* **[Critical] Bulk delete in edit mode is now truly sequential.**
+  The delete-selected-items loop awaits each AJAX response before firing
+  the next instead of relying on a 120 ms timer gap. Pre-1.1.3, two
+  parallel deletions could each read the cart before the other had
+  committed, both report `vendor_empty: false`, and one of the two items
+  could remain in the cart while both were removed visually. Empty
+  vendor blocks now reliably disappear after their last product is
+  removed.
+* **[Critical] Quantity stepper no longer drops cross-row updates.**
+  Pre-1.1.3 a single shared debounce timer served every product row, so
+  clicking +/- on Row B within 400 ms of Row A would silently cancel
+  Row A's pending AJAX. Each row now has its own debounce timer.
+* **[High] Variation dropdown actually rolls back on AJAX failure.**
+  Pre-1.1.3 the rollback logic stored the NEW value as "previous" right
+  before sending the request, so the rollback set the dropdown to the
+  same value it already had — the user saw the new selection while the
+  cart still contained the old one. Now reads from the template-seeded
+  `data-prev-val` attribute instead.
+* **[High] Selected-keys race during variation change.**
+  When variation change rewrites a cart-item-key, the global selected-
+  keys array is now updated optimistically before the request, so any
+  other action that fires while the variation request is in flight
+  (e.g. clicking + on a different row) no longer sends a stale key the
+  server can't resolve.
+* **[High] Quantity check in partial checkout.**
+  `handle_zymarg_partial_checkout` now calls `has_enough_stock( $qty )`
+  in addition to `is_in_stock()`. Pre-1.1.3, a cart line with quantity
+  exceeding available stock would pass the partial-checkout pre-flight
+  and only fail (silently capped or with a confusing message) at the
+  WooCommerce checkout step.
+* **[High] `getTotals` and `removeCoupon` no longer swallow network
+  errors silently.** Both now show the standard error notice on a `.fail`,
+  preventing the user from continuing with stale totals or an
+  uncertain coupon state.
+* **[Medium] Move-to-cart preserves scroll position across the reload.**
+  The reload itself remains for now (full AJAX-based DOM injection is
+  planned for v1.2.0), but the user's scroll position is stashed in
+  `sessionStorage` before the reload and restored on page load — so
+  long cart pages no longer feel like they lose their place.
+* **[Medium] Stale row-count flicker after delete is gone.**
+  `applyTotals()` excludes rows mid-fadeout (`.zymarg-removing`) when
+  computing the "X of Y selected" label, so the count snaps to the
+  final value cleanly instead of briefly showing the pre-delete total.
+* **[Medium] Cross-tab partial-checkout restore lock window shortened
+  from 30 s to 5 s.** The 5 s window still covers the AJAX-to-redirect
+  hand-off, but no longer blocks legitimate cart restores in other
+  browser tabs that the user may open during normal flow.
+* **[Medium] Edit-mode entry now clears the global selected-keys
+  array.** Pre-1.1.3 the edit-mode unchecking of all checkboxes did
+  not propagate because the checkbox module's edit-mode guard short-
+  circuits the cascade — leaving stale keys readable by any code that
+  introspected `ZymargCart.getSelectedKeys()` while in edit mode.
+* **[Low] `escAttr()` now performs the full HTML-attribute escape set
+  (`&`, `"`, `'`, `<`, `>`).** Pre-1.1.3 only added `'` on top of
+  `escHtml()`'s basic substitution. Defensive only — no known active
+  exploit path, but tightens up dynamic coupon-code rendering.
+* **[Low] Back-forward cache (bfcache) restoration now resets ALL
+  loading states.** Pre-1.1.3 only re-enabled the checkout button, so
+  qty / variation / coupon / save-for-later loading classes could
+  remain frozen if the user navigated away mid-AJAX and pressed Back.
 
 = 1.1.2 =
 * **Removed: Grand Total row inside the Order Summary breakdown panel.**
@@ -143,6 +208,13 @@ to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.1.3 =
+Major cart-stability release. Fixes 13 race-condition / correctness /
+UX bugs across all three widgets — including the bulk-delete race that
+left empty vendor blocks visible, the silent dropping of quantity
+updates across rows, and the silently-broken variation rollback. No
+data migration required, no breaking changes — drop-in upgrade.
 
 = 1.1.2 =
 UI cleanup: removes the duplicate Grand Total row from inside the

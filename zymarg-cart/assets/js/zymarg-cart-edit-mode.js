@@ -63,6 +63,15 @@
         // Uncheck all product checkboxes — fresh deletion selection state.
         $( SEL_PRODUCT_CB ).prop( 'checked', false );
 
+        // v1.1.3: also clear the global selected-keys array. Pre-1.1.3 the
+        // unchecking above did not propagate to ZymargCart._selectedKeys
+        // because the checkbox module's edit-mode guard short-circuits the
+        // selection cascade — so any code reading getSelectedKeys() while in
+        // edit mode would receive a stale list.
+        if ( window.ZymargCart ) {
+            ZymargCart.updateSelectedKeys( [] );
+        }
+
         // Swap label: "Edit" → "Done".
         $editBtn.find( '.zymarg-btn-label' )
             .text( $editBtn.data( 'done-label' ) || cfg.i18n.done || 'Done' );
@@ -175,8 +184,13 @@
         var index    = 0;
 
         /**
-         * Recursively removes items one at a time.
-         * A 120 ms gap between calls avoids simultaneous WC session writes.
+         * Recursively removes items one at a time, awaiting each AJAX response
+         * before firing the next. v1.1.3: pre-1.1.3 used setTimeout(120) which
+         * fired the next request before the previous one had committed, causing
+         * race conditions where two parallel deletions both reported
+         * vendor_empty: false (each read the cart before the other had
+         * committed) and the empty vendor block stayed visible — and one of
+         * the two items might not actually be deleted server-side at all.
          */
         function removeNext() {
             if ( index >= targets.length ) {
@@ -193,15 +207,32 @@
                 return;
             }
 
-            if ( window.ZymargAjax ) {
-                ZymargAjax.removeItem(
-                    target.$row,
-                    target.key,
-                    [] // Empty selectedKeys — we're deleting, not checking out.
-                );
+            if ( ! window.ZymargAjax ) {
+                // ZymargAjax not loaded — bail.
+                exitEditMode( $editBtn );
+                return;
             }
 
-            setTimeout( removeNext, 120 );
+            var deferred = ZymargAjax.removeItem(
+                target.$row,
+                target.key,
+                [] // Empty selectedKeys — we're deleting, not checking out.
+            );
+
+            // True sequential — wait for the server to finish before firing the
+            // next request. Use .always() so a failed request also advances the
+            // queue (otherwise a single error would freeze the whole bulk
+            // delete). A small 80 ms gap between iterations gives the
+            // remove-row fade animation visual breathing room.
+            if ( deferred && typeof deferred.always === 'function' ) {
+                deferred.always( function () {
+                    setTimeout( removeNext, 80 );
+                } );
+            } else {
+                // Fallback for any caller / version that doesn't return a
+                // deferred — keep the original behaviour rather than hanging.
+                setTimeout( removeNext, 400 );
+            }
         }
 
         removeNext();

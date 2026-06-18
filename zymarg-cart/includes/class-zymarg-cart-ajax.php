@@ -843,9 +843,14 @@ final class Zymarg_Cart_Ajax {
 			}
 		}
 
-		// Check all selected items are purchasable and in stock.
+		// Check all selected items are purchasable AND have enough stock for
+		// the requested quantity. v1.1.3: pre-1.1.3 only called is_in_stock(),
+		// which returns true as long as ANY units are available — so a cart
+		// line with qty 5 against stock of 3 would pass this check and
+		// silently fail (or be silently capped) at WC checkout.
 		foreach ( $selected_keys as $key ) {
 			$item       = $cart->get_cart_item( $key );
+			$qty        = (int) ( $item['quantity'] ?? 0 );
 			$price_id   = (int) ( $item['variation_id'] ?? 0 ) ?: (int) ( $item['product_id'] ?? 0 );
 			$product    = $item['data'] instanceof \WC_Product ? $item['data'] : wc_get_product( $price_id );
 
@@ -858,10 +863,29 @@ final class Zymarg_Cart_Ajax {
 					)
 				);
 			}
+
+			// has_enough_stock() respects backorder settings and only blocks
+			// when the cart quantity exceeds available stock for products that
+			// don't allow backorders.
+			if ( $qty > 0 && ! $product->has_enough_stock( $qty ) ) {
+				$available = $product->managing_stock() ? (int) $product->get_stock_quantity() : 0;
+				Zymarg_Cart_Helpers::send_error(
+					sprintf(
+						/* translators: 1: Product name, 2: Available quantity. */
+						__( 'Only %2$d of "%1$s" available — please reduce the quantity before checking out.', 'zymarg-cart' ),
+						wp_strip_all_tags( $product->get_name() ),
+						$available
+					)
+				);
+			}
 		}
 
 		// Set checkout-initiated lock so maybe_restore_cart skips this request.
-		set_transient( self::checkout_lock_key(), true, 30 );
+		// v1.1.3: TTL reduced from 30 s to 5 s. The lock only needs to cover
+		// the window between this AJAX response and the JS-driven redirect to
+		// the checkout page. Longer windows blocked legitimate cart restores
+		// in other browser tabs (Issue #9 in the v1.1.3 audit).
+		set_transient( self::checkout_lock_key(), true, 5 );
 
 		// Backup full cart and remove unselected items.
 		$backed_up = Zymarg_Cart_Partial::backup_cart( $selected_keys );
