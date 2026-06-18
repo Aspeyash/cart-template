@@ -4,7 +4,7 @@ Tags: woocommerce, cart, multi-vendor, elementor, dokan
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 1.1.3
+Stable tag: 1.1.4
 WC requires at least: 9.0
 WC tested up to: 9.9
 License: GPLv2 or later
@@ -56,6 +56,32 @@ hooks (woocommerce_thankyou, order_status_processing, order_status_completed)
 to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
 
 == Changelog ==
+
+= 1.1.4 =
+* **[Critical] Cash-on-Delivery (and other instant-status gateways) no
+  longer wipes the unselected cart items after partial checkout.**
+  Pre-1.1.4, the post-order restore tried to re-add unselected items
+  directly to the WC cart inside `woocommerce_order_status_processing`
+  — which fires INLINE during COD checkout submission, BEFORE
+  WooCommerce's own `empty_cart()` runs. The just-added items got
+  wiped milliseconds later, and a per-order transient lock then
+  blocked the later `woocommerce_thankyou` hook from doing a second
+  restore. Net result pre-1.1.4: COD customers permanently lost any
+  items they didn't check out. v1.1.4 always defers the restore to
+  the next /cart/ visit (via the existing pending-restore queue),
+  which runs on `woocommerce_before_cart` priority 5 — long after
+  WC's empty_cart() has happened — so the race is sidestepped.
+* **[High] Guest customers now also get their unselected items
+  restored after a partial checkout.** Pre-1.1.4 the pending-restore
+  queue was user-meta-only and silently dropped guest restores.
+  Added a parallel WC-session storage key
+  (`Helpers::SESSION_KEY_PENDING`) so guests are handled the same way
+  as logged-in customers. The login-migration handler in
+  `Partial::on_login()` now also migrates this session key to
+  user-meta if a guest places an order and then logs in before
+  visiting /cart/.
+* No data migration required. Drop-in upgrade. Abandoned-checkout
+  restoration (Scenario B) is unchanged.
 
 = 1.1.3 =
 **Comprehensive cart-stability release: 13 race-condition / correctness / UX
@@ -208,6 +234,13 @@ fixes across all three widgets, identified by a full plugin audit.**
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.1.4 =
+Critical fix for partial checkout with Cash-on-Delivery and other
+instant-status payment gateways: unselected cart items were being
+permanently lost after order completion. They are now reliably
+restored on the next /cart/ visit. Guest customers are also covered
+for the first time. Drop-in upgrade — no data migration.
 
 = 1.1.3 =
 Major cart-stability release. Fixes 13 race-condition / correctness /

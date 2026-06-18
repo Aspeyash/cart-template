@@ -44,6 +44,9 @@ final class Zymarg_Cart_Helpers {
 	/** User-meta key for the partial-checkout cart backup (logged-in users). */
 	public const USERMETA_KEY_BACKUP = '_zymarg_cart_backup';
 
+	/** WC session key for the post-order pending-restore queue (guest users) (v1.1.4). */
+	public const SESSION_KEY_PENDING = '_zymarg_pending_restore';
+
 	/** Default maximum number of items a customer can save for later. */
 	public const DEFAULT_MAX_SAVED = 50;
 

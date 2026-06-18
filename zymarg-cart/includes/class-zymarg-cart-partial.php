@@ -18,11 +18,26 @@
  *   5. Customer is redirected to WC checkout URL.
  *
  * AFTER SUCCESSFUL ORDER (reinforced — 3 hooks):
- *   Hook A: woocommerce_thankyou           → customer active, restore directly.
- *   Hook B: woocommerce_order_status_processing → may be payment gateway webhook.
+ *   Hook A: woocommerce_thankyou               → customer is on /thankyou/ page.
+ *   Hook B: woocommerce_order_status_processing → may fire inline during COD
+ *                                                 checkout submission OR from
+ *                                                 a payment gateway webhook.
  *   Hook C: woocommerce_order_status_completed  → may be admin action.
- *   For hooks B & C in background context, unselected items are queued in
- *   a _zymarg_pending_restore user-meta key and restored on next cart load.
+ *
+ *   v1.1.4: ALL three hooks queue unselected items to a pending-restore
+ *   storage (user-meta for logged-in customers, WC session for guests),
+ *   and the items are restored on the next /cart/ visit by
+ *   maybe_restore_cart(). The pre-1.1.4 "restore directly to cart when
+ *   the customer is active" path was racy: for COD orders, the
+ *   `woocommerce_order_status_processing` hook fires INLINE during the
+ *   checkout submission BEFORE WooCommerce calls empty_cart() — so any
+ *   items added via add_to_cart() in that hook were immediately wiped,
+ *   then the per-order transient lock blocked the later
+ *   `woocommerce_thankyou` hook from doing a second restore. Net result
+ *   pre-1.1.4: COD customers lost their unselected items entirely.
+ *   Always-defer-to-pending sidesteps the race because
+ *   maybe_restore_cart() runs on `woocommerce_before_cart` priority 5,
+ *   long after WC's empty_cart() has happened.
  *
  * CART PAGE RETURN WITHOUT COMPLETING ORDER (abandonment):
  *   woocommerce_before_cart fires → backup found → unselected items restored.
@@ -36,7 +51,8 @@
  * -------------------------------------------------------------------------
  *   Guest        → WC session key:   _zymarg_cart_backup
  *   Logged-in    → user meta key:    _zymarg_cart_backup
- *   Pending restore (bg webhook)  →  _zymarg_pending_restore (user meta only)
+ *   Pending restore (logged-in)   →  _zymarg_pending_restore (user meta)
+ *   Pending restore (guest, v1.1.4) → _zymarg_pending_restore (WC session)
  *
  * @package ZymargCart
  * @since   1.0.0
@@ -405,32 +421,41 @@ final class Zymarg_Cart_Partial {
 				]
 			);
 
-			// ─── Determine context ──────────────────────────────────────────
-			$customer_is_active = (
-				Zymarg_Cart_Helpers::is_cart_available() &&
-				(
-					( $customer_id > 0 && get_current_user_id() === $customer_id ) ||
-					( $customer_id === 0 ) // Guest — current session IS the customer.
-				)
-			);
+			// ─── Queue unselected items for pending restore ─────────────────
+			//
+			// v1.1.4: ALWAYS queue to pending-restore storage, regardless of
+			// whether the customer is "active" right now. This is to avoid the
+			// race against WC's own empty_cart() — see the class docblock for
+			// the full COD failure trace. Items are restored on the next
+			// /cart/ visit by maybe_restore_cart().
+			if ( ! empty( $unselected_items ) ) {
+				if ( $customer_id > 0 ) {
+					// Logged-in customer — persist to user meta.
+					update_user_meta(
+						$customer_id,
+						self::USERMETA_KEY_PENDING,
+						array_values( $unselected_items )
+					);
 
-			if ( $customer_is_active && ! empty( $unselected_items ) ) {
-				// Customer has an active session — restore directly to WC cart.
-				self::add_items_to_cart( $unselected_items );
+					Zymarg_Cart_Helpers::log(
+						'Partial::on_order_complete — items queued in pending restore (user_meta).',
+						[ 'customer_id' => $customer_id, 'count' => count( $unselected_items ) ]
+					);
+				} else {
+					// Guest — persist to WC session (v1.1.4).
+					$session = Zymarg_Cart_Helpers::get_wc_session();
+					if ( $session ) {
+						$session->set(
+							Zymarg_Cart_Helpers::SESSION_KEY_PENDING,
+							array_values( $unselected_items )
+						);
 
-			} elseif ( $customer_id > 0 && ! $customer_is_active && ! empty( $unselected_items ) ) {
-				// Background webhook (Billplz IPN, iPay88 callback, admin action).
-				// Queue items for restore on next cart page load.
-				update_user_meta(
-					$customer_id,
-					self::USERMETA_KEY_PENDING,
-					array_values( $unselected_items )
-				);
-
-				Zymarg_Cart_Helpers::log(
-					'Partial::on_order_complete — items queued in pending restore.',
-					[ 'customer_id' => $customer_id, 'count' => count( $unselected_items ) ]
-				);
+						Zymarg_Cart_Helpers::log(
+							'Partial::on_order_complete — items queued in pending restore (session).',
+							[ 'count' => count( $unselected_items ) ]
+						);
+					}
+				}
 			}
 
 			// Clear the backup regardless of restoration method.
@@ -468,19 +493,40 @@ final class Zymarg_Cart_Partial {
 	public static function maybe_restore_cart(): void {
 		$restored = false;
 
-		// ─── Scenario A: pending restore from background webhook ────────────
+		// ─── Scenario A: pending restore queued by on_order_complete ────────
+		//
+		// v1.1.4: now handles BOTH logged-in (user meta) AND guest (WC session)
+		// pending queues. Pre-1.1.4 only checked user_meta, so guest customers
+		// who completed a partial checkout never got their unselected items
+		// back.
 		if ( is_user_logged_in() ) {
 			$pending = get_user_meta( get_current_user_id(), self::USERMETA_KEY_PENDING, true );
 
 			if ( ! empty( $pending ) && is_array( $pending ) ) {
 				Zymarg_Cart_Helpers::log(
-					'Partial::maybe_restore_cart — processing pending restore.',
+					'Partial::maybe_restore_cart — processing pending restore (user_meta).',
 					[ 'count' => count( $pending ) ]
 				);
 
 				self::add_items_to_cart( $pending );
 				delete_user_meta( get_current_user_id(), self::USERMETA_KEY_PENDING );
 				$restored = true;
+			}
+		} else {
+			$session = Zymarg_Cart_Helpers::get_wc_session();
+			if ( $session ) {
+				$pending = $session->get( Zymarg_Cart_Helpers::SESSION_KEY_PENDING );
+
+				if ( ! empty( $pending ) && is_array( $pending ) ) {
+					Zymarg_Cart_Helpers::log(
+						'Partial::maybe_restore_cart — processing pending restore (session).',
+						[ 'count' => count( $pending ) ]
+					);
+
+					self::add_items_to_cart( $pending );
+					$session->set( Zymarg_Cart_Helpers::SESSION_KEY_PENDING, null );
+					$restored = true;
+				}
 			}
 		}
 
@@ -535,28 +581,52 @@ final class Zymarg_Cart_Partial {
 			return;
 		}
 
+		// ── Migrate the partial-checkout backup ──────────────────────────
 		$session_backup = $session->get( Zymarg_Cart_Helpers::SESSION_KEY_BACKUP );
-		if ( empty( $session_backup ) || ! is_array( $session_backup ) ) {
-			return;
+		if ( ! empty( $session_backup ) && is_array( $session_backup ) ) {
+			// Only migrate if the user does not already have a user-meta backup
+			// (don't overwrite a more recent backup with a stale session one).
+			$existing = get_user_meta( $user->ID, Zymarg_Cart_Helpers::USERMETA_KEY_BACKUP, true );
+
+			if ( empty( $existing ) ) {
+				update_user_meta(
+					$user->ID,
+					Zymarg_Cart_Helpers::USERMETA_KEY_BACKUP,
+					$session_backup
+				);
+
+				$session->set( Zymarg_Cart_Helpers::SESSION_KEY_BACKUP, null );
+
+				Zymarg_Cart_Helpers::log(
+					'Partial::on_login — guest backup migrated to user meta.',
+					[ 'user_id' => $user->ID ]
+				);
+			}
 		}
 
-		// Only migrate if the user does not already have a user-meta backup
-		// (don't overwrite a more recent backup with a stale session one).
-		$existing = get_user_meta( $user->ID, Zymarg_Cart_Helpers::USERMETA_KEY_BACKUP, true );
+		// ── Migrate the post-order pending-restore queue (v1.1.4) ─────────
+		// A guest may have placed an order, started the pending-restore queue
+		// in their WC session, and then logged in before visiting /cart/. In
+		// that case we move the queue to user-meta so maybe_restore_cart()
+		// finds it on the next cart load.
+		$session_pending = $session->get( Zymarg_Cart_Helpers::SESSION_KEY_PENDING );
+		if ( ! empty( $session_pending ) && is_array( $session_pending ) ) {
+			$existing_pending = get_user_meta( $user->ID, self::USERMETA_KEY_PENDING, true );
 
-		if ( empty( $existing ) ) {
-			update_user_meta(
-				$user->ID,
-				Zymarg_Cart_Helpers::USERMETA_KEY_BACKUP,
-				$session_backup
-			);
+			if ( empty( $existing_pending ) ) {
+				update_user_meta(
+					$user->ID,
+					self::USERMETA_KEY_PENDING,
+					$session_pending
+				);
 
-			$session->set( Zymarg_Cart_Helpers::SESSION_KEY_BACKUP, null );
+				$session->set( Zymarg_Cart_Helpers::SESSION_KEY_PENDING, null );
 
-			Zymarg_Cart_Helpers::log(
-				'Partial::on_login — guest backup migrated to user meta.',
-				[ 'user_id' => $user->ID ]
-			);
+				Zymarg_Cart_Helpers::log(
+					'Partial::on_login — guest pending-restore migrated to user meta.',
+					[ 'user_id' => $user->ID, 'count' => count( $session_pending ) ]
+				);
+			}
 		}
 	}
 
