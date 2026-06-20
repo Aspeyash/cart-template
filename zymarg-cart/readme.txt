@@ -4,7 +4,7 @@ Tags: woocommerce, cart, multi-vendor, elementor, dokan
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 WC requires at least: 9.0
 WC tested up to: 9.9
 License: GPLv2 or later
@@ -56,6 +56,34 @@ hooks (woocommerce_thankyou, order_status_processing, order_status_completed)
 to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
 
 == Changelog ==
+
+= 1.3.2 =
+* **[Bug fix] Simple-product alignment — desktop only + actually
+  vertically centered.** v1.3.1 introduced two regressions on the
+  `.zymarg-row-simple` CSS rules:
+    1. The rules applied on every viewport (no media-query gate),
+       which broke mobile because `.zymarg-col-variation` is a
+       flex-row on mobile (vs flex-column on desktop) — so
+       `justify-content: center` became horizontal center (qty
+       stepper drifted to the middle of its row) and
+       `align-items: flex-start` became vertical top — both wrong
+       for the mobile card layout.
+    2. On desktop, `justify-content: center` on the flex container
+       was a no-op: the flex container had only one child (the qty
+       stepper) and no explicit height, so there was no extra space
+       to distribute. The qty stepper still appeared top-aligned in
+       its grid cell because the grid parent's `align-items: start`
+       won.
+  v1.3.2 fixes both issues:
+    - Wraps the `.zymarg-row-simple` rules in
+      `@media (min-width: 481px)` — mobile is now untouched and
+      uses its own v1.3.0 layout exactly as before.
+    - Replaces `justify-content: center` on the flex container with
+      `align-self: center` on the grid item — this correctly
+      centers the col-variation cell vertically within the grid
+      row, so the qty stepper now sits at the vertical center of
+      its cell as intended.
+  No other code touched.
 
 = 1.3.1 =
 * **[UX] Simple-product alignment** — when a cart row is for a simple
@@ -390,6 +418,14 @@ fixes across all three widgets, identified by a full plugin audit.**
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.3.2 =
+Bug fix for v1.3.1: the simple-product alignment rules now (a) apply
+ONLY on desktop (above 480px) — mobile layout is restored to the
+v1.3.0 / v1.3.0-equivalent behaviour — and (b) use `align-self` on
+the grid item instead of `justify-content` on the flex container, so
+the qty stepper is actually vertically centered within its cell on
+desktop instead of being top-aligned. Drop-in upgrade.
 
 = 1.3.1 =
 Two small additions: (1) Simple-product rows (no variation switcher)
