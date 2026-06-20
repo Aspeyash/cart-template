@@ -4,7 +4,7 @@ Tags: woocommerce, cart, multi-vendor, elementor, dokan
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 WC requires at least: 9.0
 WC tested up to: 9.9
 License: GPLv2 or later
@@ -56,6 +56,33 @@ hooks (woocommerce_thankyou, order_status_processing, order_status_completed)
 to handle all gateway redirect patterns including iPay88, Billplz, and FPX.
 
 == Changelog ==
+
+= 1.3.1 =
+* **[UX] Simple-product alignment** — when a cart row is for a simple
+  (non-variable) product, the quantity stepper now sits horizontally
+  LEFT and vertically CENTER inside the variation column (which would
+  otherwise look top-anchored and lonely without a variation switcher
+  above it), and the line subtotal is both horizontally and vertically
+  CENTERED. Variable products are unchanged. The change is gated by a
+  new `.zymarg-row-simple` CSS class which is added to the product row
+  template only when `! $item['is_variable']`. Mobile layout untouched.
+* **[New widget option] Vendor Identity Icon mode.** The cart-body
+  widget gains a new "Vendor Identity Icon" select in the Vendor Row
+  visibility section with two options:
+    - "Vendor Profile Photo + Name" (default — current behaviour).
+      Shows the per-vendor Dokan avatar URL.
+    - "Static Icon + Vendor Name". Shows a single icon shared across
+      all vendors instead of the per-vendor profile photo. Useful for
+      branded marketplaces that prefer a uniform vendor visual.
+  The static-icon mode reveals two extra controls:
+    - "Static Icon" — pick from a curated list of 7 vendor-relevant
+      icons: Storefront (default), Shopping Bag, Shopping Cart,
+      Briefcase, User / Profile, Tag, Bookmark.
+    - "Static Icon Color" + "Static Icon Size" (responsive).
+  Four new icons (`user`, `building-store`, `shopping-bag`,
+  `briefcase`) added to the inline-SVG library introduced in v1.3.0.
+* No data migration required. Existing widgets keep the
+  `vendor_profile` default and behave exactly as before.
 
 = 1.3.0 =
 * **[Architecture] Inline-SVG icon system replaces the Tabler Icons
@@ -363,6 +390,15 @@ fixes across all three widgets, identified by a full plugin audit.**
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.3.1 =
+Two small additions: (1) Simple-product rows (no variation switcher)
+now have left-centered quantity stepper and centered subtotal — a
+balanced visual for the otherwise-empty variation column. Variable
+products are unchanged. (2) New "Vendor Identity Icon" widget option
+in the cart-body Style tab: choose between the per-vendor Dokan
+profile photo (default — current behaviour) and a single static icon
+shared across all vendors. Drop-in upgrade — no data migration.
 
 = 1.3.0 =
 Major release. (1) The plugin now ships ALL icons as inline SVG —

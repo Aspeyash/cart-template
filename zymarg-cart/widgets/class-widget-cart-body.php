@@ -133,6 +133,58 @@ class Zymarg_Widget_Cart_Body extends \Elementor\Widget_Base {
 			] );
 		}
 
+		// ── Vendor identity icon mode (v1.3.1) ────────────────────────────
+		// Lets the merchant choose between the per-vendor profile photo
+		// (current Dokan default — `vendor_profile`) and a single static
+		// icon shared across all vendors (`static_icon`). The static icon
+		// is picked from the inline-SVG library shipped in v1.3.0.
+		$this->add_control( 'vendor_icon_type', [
+			'label'   => __( 'Vendor Identity Icon', 'zymarg-cart' ),
+			'type'    => \Elementor\Controls_Manager::SELECT,
+			'default' => 'vendor_profile',
+			'options' => [
+				'vendor_profile' => __( 'Vendor Profile Photo + Name', 'zymarg-cart' ),
+				'static_icon'    => __( 'Static Icon + Vendor Name', 'zymarg-cart' ),
+			],
+			'description' => __( 'Choose what appears next to the vendor name. The "Vendor Profile Photo" mode shows the Dokan vendor avatar (per-vendor). The "Static Icon" mode shows the same icon for every vendor.', 'zymarg-cart' ),
+		] );
+
+		$this->add_control( 'vendor_static_icon', [
+			'label'     => __( 'Static Icon', 'zymarg-cart' ),
+			'type'      => \Elementor\Controls_Manager::SELECT,
+			'default'   => 'building-store',
+			'options'   => [
+				'building-store' => __( 'Storefront', 'zymarg-cart' ),
+				'shopping-bag'   => __( 'Shopping Bag', 'zymarg-cart' ),
+				'shopping-cart'  => __( 'Shopping Cart', 'zymarg-cart' ),
+				'briefcase'      => __( 'Briefcase', 'zymarg-cart' ),
+				'user'           => __( 'User / Profile', 'zymarg-cart' ),
+				'tag'            => __( 'Tag', 'zymarg-cart' ),
+				'bookmark'       => __( 'Bookmark', 'zymarg-cart' ),
+			],
+			'condition' => [ 'vendor_icon_type' => 'static_icon' ],
+		] );
+
+		$this->add_control( 'vendor_static_icon_color', [
+			'label'     => __( 'Static Icon Color', 'zymarg-cart' ),
+			'type'      => \Elementor\Controls_Manager::COLOR,
+			'default'   => '#9500a5', // ZYMARG primary.
+			'selectors' => [ '{{WRAPPER}} .zymarg-vendor-static-icon' => 'color: {{VALUE}};' ],
+			'condition' => [ 'vendor_icon_type' => 'static_icon' ],
+		] );
+
+		$this->add_responsive_control( 'vendor_static_icon_size', [
+			'label'          => __( 'Static Icon Size', 'zymarg-cart' ),
+			'type'           => \Elementor\Controls_Manager::SLIDER,
+			'size_units'     => [ 'px', 'em' ],
+			'range'          => [ 'px' => [ 'min' => 12, 'max' => 40 ] ],
+			'default'        => [ 'size' => 18, 'unit' => 'px' ],
+			'tablet_default' => [ 'size' => 16, 'unit' => 'px' ],
+			'mobile_default' => [ 'size' => 16, 'unit' => 'px' ],
+			'selectors'      => [ '{{WRAPPER}} .zymarg-vendor-static-icon' => 'font-size: {{SIZE}}{{UNIT}};' ],
+			'condition'      => [ 'vendor_icon_type' => 'static_icon' ],
+		] );
+
 		// Product row
 		$this->add_control( 'heading_product_row_vis', [
 			'label'     => __( 'Product Row', 'zymarg-cart' ),

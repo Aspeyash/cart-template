@@ -221,6 +221,17 @@
     flex-shrink: 0;
 }
 
+/* Vendor static icon (v1.3.1) — alternative to the per-vendor profile photo
+   when the cart-body widget's "Vendor Identity Icon" setting is set to
+   "static_icon". Sized to match the avatar (24px) so the layout shifts are
+   minimal regardless of which mode is active. The Elementor controls expose
+   color and size overrides. */
+.zymarg-vendor-static-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    color: var(--zc-primary);
+}
+
 .zymarg-vendor-name {
     font-size: 13px;
     font-weight: 500;
@@ -329,6 +340,28 @@
 .zymarg-col-variation { grid-area: variation; }
 .zymarg-col-subtotal  { grid-area: subtotal;  text-align: right; }
 .zymarg-col-coupon    { grid-area: coupon; }
+
+/* ─── Simple-product alignment (v1.3.1) ────────────────────────────────────
+   When a product row is for a simple (non-variable) product the variation
+   switcher is absent, so the .zymarg-col-variation cell only holds the qty
+   stepper. The user wants:
+     - Quantity stepper: horizontally LEFT, vertically CENTER inside the
+       (otherwise empty) variation column.
+     - Subtotal cell: both horizontally and vertically CENTERED.
+   For variable products the .zymarg-row-simple class is absent and the
+   default right-aligned subtotal + flex-start variation column apply
+   unchanged.
+   Mobile layout is untouched (the mobile media query has its own column
+   structure where this concept does not directly apply). */
+.zymarg-row-simple .zymarg-col-variation {
+    justify-content: center;   /* vertical centre — col-variation is flex-column on desktop */
+    align-items: flex-start;   /* horizontal left of the cross-axis */
+}
+
+.zymarg-row-simple .zymarg-col-subtotal {
+    align-self: center;        /* vertical centre within the grid cell */
+    text-align: center;        /* horizontal centre of the price text */
+}
 
 /* Mobile-only cells are placed in DOM at all times so the JS event delegation
    works uniformly. They are hidden on desktop and only become visible inside

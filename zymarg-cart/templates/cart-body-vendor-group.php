@@ -38,6 +38,13 @@ $show_vendor_arrow   = 'yes' === ( $settings['show_vendor_arrow']     ?? 'yes' )
 $show_headers        = 'yes' === ( $settings['show_table_headers']    ?? 'yes' );
 $show_vendor_sub     = 'yes' === ( $settings['show_vendor_subtotal']  ?? 'yes' );
 
+// ── v1.3.1 — Vendor identity icon mode ─────────────────────────────────────
+// Either show the per-vendor Dokan profile photo (current behaviour) OR a
+// single static icon shared across all vendors. Static-icon mode also
+// requires picking which icon (default: building-store).
+$vendor_icon_type   = (string) ( $settings['vendor_icon_type']   ?? 'vendor_profile' );
+$vendor_static_icon = (string) ( $settings['vendor_static_icon'] ?? 'building-store' );
+
 // ── All items in this vendor group start as selected (JS manages state) ────
 $all_selected = true;
 
@@ -69,7 +76,12 @@ if ( empty( $items ) ) {
 
 		<div class="zymarg-vendor-identity">
 
-			<?php if ( ! empty( $vendor_info['avatar_url'] ) ) : ?>
+			<?php if ( 'static_icon' === $vendor_icon_type ) : ?>
+				<?php /* v1.3.1 — Static icon mode: same icon for every vendor.
+				             Replaces the per-vendor profile photo. */ ?>
+				<?php echo Zymarg_Cart_Helpers::icon( $vendor_static_icon, 'zymarg-vendor-static-icon' ); ?>
+			<?php elseif ( ! empty( $vendor_info['avatar_url'] ) ) : ?>
+				<?php /* Default mode: Dokan per-vendor profile photo. */ ?>
 				<img
 					src="<?php echo esc_url( $vendor_info['avatar_url'] ); ?>"
 					alt="<?php echo esc_attr( $vendor_info['store_name'] ?? '' ); ?>"

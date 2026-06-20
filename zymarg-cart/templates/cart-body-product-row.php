@@ -128,6 +128,10 @@ $have_coupon_text = ! empty( $settings['have_coupon_text'] )
 $row_classes = [ 'zymarg-product-row' ];
 if ( ! $is_in_stock )  { $row_classes[] = 'zymarg-row-out-of-stock'; }
 if ( $is_saved )       { $row_classes[] = 'zymarg-row-saved'; }
+// v1.3.1 — flag rows whose product is simple (no variation switcher), so CSS
+// can re-align the qty stepper (left-center) and subtotal (center-center)
+// for a more balanced visual when the variation column is otherwise empty.
+if ( empty( $item['is_variable'] ) ) { $row_classes[] = 'zymarg-row-simple'; }
 
 ?>
 <div class="<?php echo esc_attr( implode( ' ', $row_classes ) ); ?>"

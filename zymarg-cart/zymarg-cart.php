@@ -3,7 +3,7 @@
  * Plugin Name:       ZYMARG Cart
  * Plugin URI:        https://zymarg.com
  * Description:       A fully customizable multi-vendor cart plugin for ZYMARG marketplace. Built for WordPress, WooCommerce, Elementor Pro, and Dokan Pro. Features 3 interconnected Elementor widgets, partial checkout, Save for Later (hybrid), and ~300 responsive Elementor controls.
- * Version:           1.3.0
+ * Version:           1.3.1
  * Author:            ZYMARG
  * Author URI:        https://zymarg.com
  * Text Domain:       zymarg-cart
@@ -52,7 +52,7 @@ if ( version_compare( PHP_VERSION, '8.1', '<' ) ) {
 // -------------------------------------------------------------------------
 // Plugin constants.
 // -------------------------------------------------------------------------
-define( 'ZYMARG_CART_VERSION',          '1.3.0' );
+define( 'ZYMARG_CART_VERSION',          '1.3.1' );
 define( 'ZYMARG_CART_FILE',             __FILE__ );
 define( 'ZYMARG_CART_PATH',             plugin_dir_path( __FILE__ ) );
 define( 'ZYMARG_CART_URL',              plugin_dir_url( __FILE__ ) );

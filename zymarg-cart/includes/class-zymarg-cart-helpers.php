@@ -618,6 +618,14 @@ final class Zymarg_Cart_Helpers {
 
 			// Lock.
 			'lock' => '<svg ' . $attrs . '><rect x="5" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="16" r="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+
+			// Vendor identity icons (v1.3.1) — used by the cart-body widget's
+			// "Vendor Identity Icon" → "Static Icon" mode as a marketplace-
+			// agnostic alternative to the per-vendor profile photo.
+			'user'           => '<svg ' . $attrs . '><circle cx="12" cy="8" r="4"/><path d="M6 21v-1a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v1"/></svg>',
+			'building-store' => '<svg ' . $attrs . '><path d="M3 21h18"/><path d="M3 7h18l-2-3H5l-2 3"/><path d="M5 21V11"/><path d="M19 21V11"/><path d="M9 21v-6h6v6"/></svg>',
+			'shopping-bag'   => '<svg ' . $attrs . '><path d="M6 8h12l-1 13H7L6 8Z"/><path d="M9 11V6a3 3 0 0 1 6 0v5"/></svg>',
+			'briefcase'      => '<svg ' . $attrs . '><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>',
 		];
 
 		return $library;
